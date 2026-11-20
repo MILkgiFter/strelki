@@ -73,6 +73,7 @@
     <div class="menu-buttons">
       <button class="btn btn-big" id="play"><span data-i18n="play">Играть</span> <span class="btn-note" id="play-level">уровень 1</span></button>
       <button class="btn btn-ghost btn-big" id="open-levels" data-i18n="levels">Уровни</button>
+      <button class="btn btn-ghost btn-big" id="open-album" data-i18n="album">Альбом</button>
     </div>
   </section>
 
@@ -83,6 +84,16 @@
       <div class="stars-total" id="levels-stars">★ 0</div>
     </header>
     <div class="levels-grid" id="levels-grid"></div>
+  </section>
+
+  <!-- альбом: силуэты фигур; открытые — цветные с названием, закрытые — тенью -->
+  <section class="screen screen-levels" id="album" hidden>
+    <header class="levels-head">
+      <button class="icon-btn" id="album-back" data-i18n-aria="back" aria-label="Назад">‹</button>
+      <div class="levels-title" data-i18n="album">Альбом</div>
+      <div class="stars-total" id="album-count">0 / 0</div>
+    </header>
+    <div class="album-grid" id="album-grid"></div>
   </section>
 
   <!-- заставка при запуске: логотип, плитки-стрелки, плавающие змейки, полоса загрузки -->

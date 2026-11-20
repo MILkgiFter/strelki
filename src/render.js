@@ -2,11 +2,36 @@
 // Змейка — одна линия по центрам клеток со скруглёнными изгибами и наконечником на голове.
 import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS } from './config.js';
 import { DIRS, cellXY, trajectory, windowAt } from './level.js';
+import { shapeAspect, shapeMask } from './shapes.js';
 
 // отступы безопасной зоны экрана (вырез iPhone) в px; main.js обновляет при resize
 export const safe = { top: 0, bottom: 0 };
 export const hudTop = () => LAYOUT.hudTop + safe.top;
 export const hudBottom = () => LAYOUT.hudBottom + safe.bottom;
+
+// Силуэт фигуры для альбома: клетки маски одним цветом в квадратном холсте size×size (css px)
+export function drawSilhouette(cv, shape, color, size, cellsLong) {
+  const a = shapeAspect(shape);
+  const cols = Math.max(4, Math.round(a >= 1 ? cellsLong : cellsLong * a));
+  const rows = Math.max(4, Math.round(a >= 1 ? cellsLong / a : cellsLong));
+  const m = shapeMask(shape, cols, rows);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(size * dpr);
+  cv.height = Math.round(size * dpr);
+  cv.style.width = cv.style.height = size + 'px';
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  const c = size / Math.max(cols, rows);
+  const ox = (size - c * cols) / 2;
+  const oy = (size - c * rows) / 2;
+  g.fillStyle = color;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      // +0.5 px — без щелей между клетками
+      if (m[y * cols + x]) g.fillRect(ox + x * c, oy + y * c, c + 0.5, c + 0.5);
+    }
+  }
+}
 
 // cols×rows клеток; extraTop — дополнительное место сверху (текст обучения)
 export function layout(w, h, cols, rows, extraTop = 0) {

@@ -3,13 +3,13 @@ import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLAS
 import { initBoosters, grantForStars, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled } from './sound.js';
-import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze } from './level.js';
+import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
 const IS_ADMIN = new URLSearchParams(location.search).has('admin');
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
-import { render, view, safe, hudTop, hudBottom } from './render.js';
+import { render, view, safe, hudTop, hudBottom, drawSilhouette } from './render.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('board');
@@ -68,7 +68,7 @@ const boost = initBoosters(IS_ADMIN ? { hint: 50, eraser: 50, life: 50 } : load(
 const saveBoost = () => {
   if (!IS_ADMIN) save(GAME.boostKey, boost);
 };
-st.showBg = load(GAME.bgKey, true) !== false;
+st.showBg = load(GAME.bgKey, false) === true; // клетки под фигурой — по умолчанию выключены
 
 // ---------- уровень ----------
 function startLevel(n) {
@@ -362,6 +362,7 @@ function useLife() {
 function hideScreens() {
   $('menu').hidden = true;
   $('levels').hidden = true;
+  $('album').hidden = true;
 }
 
 function showMenu() {
@@ -373,7 +374,48 @@ function showMenu() {
   closeOverlay(); // после победы/поражения «Играть» всё равно начинает уровень заново
   $('play-level').textContent = t('playLevel', st.over ? progress : st.level);
   $('levels').hidden = true;
+  $('album').hidden = true;
   $('menu').hidden = false;
+}
+
+// Альбом: узнаваемые фигуры и достопримечательности по порядку уровней (без абстрактных и прямоугольников).
+// Список фигур не меняется — считается один раз; открыта фигура, если её уровень пройден.
+let albumList = null;
+function albumEntries() {
+  if (albumList) return albumList;
+  const seen = new Set();
+  albumList = [];
+  for (let n = 1; n <= MENU.albumLevels; n++) {
+    const shape = shapeFor(n);
+    if (!shape.name || shape.id.startsWith('abs') || seen.has(shape.id)) continue;
+    seen.add(shape.id);
+    albumList.push({ n, shape });
+  }
+  return albumList;
+}
+function showAlbum() {
+  const colors = Object.values(COLORS.snake);
+  const list = albumEntries().map((e) => ({ ...e, open: e.n < progress || Number(bestStars[e.n]) > 0 }));
+  const grid = $('album-grid');
+  grid.innerHTML = '';
+  list.forEach((e, i) => {
+    const btn = document.createElement('button');
+    btn.className = e.open ? 'alb' : 'alb locked';
+    if (e.open) btn.dataset.n = e.n;
+    else btn.disabled = true;
+    const cv = document.createElement('canvas');
+    drawSilhouette(cv, e.shape, e.open ? colors[i % colors.length] : COLORS.albumLocked, MENU.albumThumb, MENU.albumCells);
+    const name = document.createElement('span');
+    name.className = 'alb-name';
+    name.textContent = e.open ? shapeName(e.shape) : t('albumLevel', e.n);
+    btn.setAttribute('aria-label', e.open ? shapeName(e.shape) : t('levelLocked', e.n));
+    btn.append(cv, name);
+    grid.appendChild(btn);
+  });
+  $('album-count').textContent = `${list.filter((e) => e.open).length} / ${list.length}`;
+  $('menu').hidden = true;
+  $('album').hidden = false;
+  $('album').scrollTop = 0;
 }
 
 function showLevels() {
@@ -412,6 +454,22 @@ $('open-levels').addEventListener('click', () => {
   unlock();
   sfx.click();
   showLevels();
+});
+$('open-album').addEventListener('click', () => {
+  unlock();
+  sfx.click();
+  showAlbum();
+});
+$('album-back').addEventListener('click', () => {
+  sfx.click();
+  showMenu();
+});
+$('album-grid').addEventListener('click', (e) => {
+  const btn = e.target.closest('.alb[data-n]');
+  if (!btn) return;
+  unlock();
+  sfx.click();
+  startLevel(Number(btn.dataset.n));
 });
 $('levels-back').addEventListener('click', () => {
   sfx.click();

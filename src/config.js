@@ -23,6 +23,9 @@ export const CONFETTI = {
 export const MENU = {
   levelsMin: 200, // сколько клеток показывать минимум (закрытые — с замком), список прокручивается
   levelsStep: 10, // число клеток округляется вверх до кратного
+  albumLevels: 200, // альбом: фигуры с уровней 1..albumLevels
+  albumCells: 28, // разрешение силуэта в альбоме (клеток по длинной стороне)
+  albumThumb: 72, // размер силуэта в альбоме, px
 };
 
 // Звёзды за уровень: по числу оставшихся жизней (3 — без ошибок)
@@ -202,6 +205,7 @@ export const SNAKE = {
 export const COLORS = {
   bg: '#F4F1EA',
   board: '#E7E1D5',
+  albumLocked: '#D9D2C4', // закрытая фигура в альбоме — тень
   cell: '#EFEAE0',
   text: '#2E2A24',
   muted: '#8A8275',
