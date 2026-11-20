@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generate, solve, params, analyze, pieces, DIRS, cellXY, trajectory, windowAt } from '../src/level.js';
+import { generate, solve, params, analyze, pieces, DIRS, cellXY, trajectory, windowAt, dayIndex, dailyLevel } from '../src/level.js';
 const inside = (mask) => mask.reduce((t, v) => t + v, 0);
 
 const bent = (p, w) => new Set(p.cells.map((c) => c % w)).size > 1 && new Set(p.cells.map((c) => Math.floor(c / w))).size > 1;
@@ -69,6 +69,27 @@ describe('уровни', () => {
     expect(tags.small).toBe(10);
     const mean = (a) => a.reduce((t, v) => t + v, 0) / a.length;
     expect(mean(cnt.big)).toBeGreaterThan(mean(cnt.small) * 2);
+  });
+
+  it('ежедневный уровень: по дате, за обычными уровнями, большой с узнаваемой фигурой, решаемый', () => {
+    expect(dayIndex(new Date(2026, 0, 1))).toBe(0);
+    expect(dayIndex(new Date(2026, 10, 20, 23, 59))).toBe(dayIndex(new Date(2026, 10, 20, 0, 1)));
+    expect(dayIndex(new Date(2026, 10, 21)) - dayIndex(new Date(2026, 10, 20))).toBe(1);
+    const shapes = [];
+    for (let d = 300; d < 314; d++) {
+      const n = dailyLevel(d);
+      expect(n).toBeGreaterThan(1000);
+      const p = params(n);
+      expect(p.tag).toBe('big');
+      expect(p.shape.name && !p.shape.id.startsWith('abs')).toBeTruthy();
+      shapes.push(p.shape.id);
+      if (d < 303) {
+        const g = generate(n);
+        expect(solve(g.grid, g.w, g.h).solved).toBe(true);
+      }
+    }
+    for (let i = 1; i < shapes.length; i++) expect(shapes[i]).not.toBe(shapes[i - 1]);
+    expect(new Set(shapes).size).toBeGreaterThanOrEqual(10);
   });
 
   it('уровень детерминирован', () => {

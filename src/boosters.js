@@ -32,6 +32,20 @@ export function grantForStars(b, newStars) {
   return got;
 }
 
+// выдать набор бустеров вида { hint: 1, eraser: 1 } (не больше максимума); возвращает список выданных
+export function grantSet(b, set) {
+  const got = [];
+  for (const k of BOOSTER_KINDS) {
+    for (let i = 0; i < (set[k] || 0); i++) {
+      if (b[k] < BOOSTERS.max) {
+        b[k]++;
+        got.push(k);
+      }
+    }
+  }
+  return got;
+}
+
 // потратить один бустер; false — если нет
 export function spend(b, k) {
   if (!(b[k] > 0)) return false;

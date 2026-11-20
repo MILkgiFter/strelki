@@ -1,9 +1,9 @@
 // Состояние игры, ввод и экраны.
-import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS } from './config.js';
-import { initBoosters, grantForStars, spend, BOOSTER_KINDS } from './boosters.js';
+import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
+import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled } from './sound.js';
-import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor } from './level.js';
+import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
 const IS_ADMIN = new URLSearchParams(location.search).has('admin');
@@ -44,7 +44,7 @@ function load(key, fallback) {
   }
 }
 function save(key, value) {
-  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey)) return;
+  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key)) return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
@@ -70,8 +70,18 @@ const saveBoost = () => {
 };
 st.showBg = load(GAME.bgKey, false) === true; // клетки под фигурой — по умолчанию выключены
 
+// ежедневный уровень: дата последнего прохождения (награда — раз в день)
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+let dailyDate = load(DAILY.key, null)?.date || '';
+const dailyDoneToday = () => dailyDate === todayKey();
+const startDaily = () => startLevel(dailyLevel(dayIndex(new Date())), true);
+
 // ---------- уровень ----------
-function startLevel(n) {
+// daily — ежедневный уровень: прогресс и звёзды не меняет, своя награда
+function startLevel(n, daily = false) {
   const { w, h, grid, mask, shape, tag } = generate(n);
   Object.assign(st, {
     level: n,
@@ -82,6 +92,7 @@ function startLevel(n) {
     tag,
     list: pieces(grid), // змейки на поле (чтобы не собирать их из сетки каждый кадр)
     winAt: 0, // когда показать окно победы (после финала с фигурой)
+    daily,
     press: null,
     cam: { z: 1, ox: 0, oy: 0 },
     grid,
@@ -111,7 +122,7 @@ function startLevel(n) {
 }
 
 function updateHud() {
-  $('level').textContent = t('level', st.level);
+  $('level').textContent = st.daily ? t('daily') : t('level', st.level);
   $('hearts').innerHTML = Array.from(
     { length: GAME.lives },
     (_, i) => `<span class="heart${i < st.lives ? '' : ' empty'}">♥</span>`,
@@ -235,18 +246,29 @@ function useHint() {
 function win() {
   st.over = true;
   setMode(null);
-  if (st.level + 1 > progress && st.level < GAME.maxLevel) {
-    progress = st.level + 1;
-    save(GAME.storageKey, progress);
-  }
   const stars = Math.max(1, Math.min(3, st.lives));
-  const prev = Number(bestStars[st.level]) || 0;
-  if (stars > prev) {
-    bestStars[st.level] = stars;
-    save(GAME.starsKey, bestStars);
+  let prev = 0;
+  if (st.daily) {
+    // ежедневный: прогресс и звёзды не трогаем, награда — только за первое прохождение за день
+    const first = !dailyDoneToday();
+    st.winGot = first ? grantSet(boost, DAILY.reward) : [];
+    if (first) {
+      dailyDate = todayKey();
+      save(DAILY.key, { date: dailyDate });
+    }
+  } else {
+    if (st.level + 1 > progress && st.level < GAME.maxLevel) {
+      progress = st.level + 1;
+      save(GAME.storageKey, progress);
+    }
+    prev = Number(bestStars[st.level]) || 0;
+    if (stars > prev) {
+      bestStars[st.level] = stars;
+      save(GAME.starsKey, bestStars);
+    }
+    // награда: бустеры за каждую новую звезду (сразу — даже если окно победы не дождутся)
+    st.winGot = grantForStars(boost, Math.max(0, stars - prev));
   }
-  // награда: бустеры за каждую новую звезду (сразу — даже если окно победы не дождутся)
-  st.winGot = grantForStars(boost, Math.max(0, stars - prev));
   saveBoost();
   updateHud();
   sfx.win();
@@ -268,8 +290,9 @@ function win() {
 
 function showWin(stars, prev) {
   $('finale').hidden = true;
-  const sub = prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
-  showOverlay(t('starTitles')[stars], sub, t('next'), () => startLevel(st.level + 1), stars);
+  const sub = st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
+  // после ежедневного «Дальше» ведёт к основному пути
+  showOverlay(t('starTitles')[stars], sub, t('next'), () => startLevel(st.daily ? progress : st.level + 1), stars);
   const icons = { hint: '🔍', eraser: '🧽', life: '♥' };
   const got = st.winGot || [];
   $('ov-reward').hidden = !got.length;
@@ -298,7 +321,7 @@ function confetti(stars) {
 function lose() {
   sfx.lose();
   setMode(null);
-  showOverlay(t('loseTitle'), t('loseSub'), t('restart'), () => startLevel(st.level));
+  showOverlay(t('loseTitle'), t('loseSub'), t('restart'), () => startLevel(st.level, st.daily));
   // «Продолжить» за бустер-жизнь: игра идёт дальше с того же места
   if (boost.life > 0) {
     $('ov-continue').hidden = false;
@@ -372,7 +395,8 @@ function showMenu() {
   setMode(null);
   $('menu-stars').textContent = totalStars() ? `★ ${totalStars()}` : '';
   closeOverlay(); // после победы/поражения «Играть» всё равно начинает уровень заново
-  $('play-level').textContent = t('playLevel', st.over ? progress : st.level);
+  $('play-level').textContent = t('playLevel', st.over || st.daily ? progress : st.level);
+  $('daily-note').textContent = dailyDoneToday() ? t('dailyDoneNote') : t('dailyNote');
   $('levels').hidden = true;
   $('album').hidden = true;
   $('menu').hidden = false;
@@ -443,8 +467,8 @@ function showLevels() {
 $('play').addEventListener('click', () => {
   unlock();
   sfx.click();
-  // начатый и не завершённый уровень (в т.ч. переигровка старого) продолжается
-  if (!st.over) {
+  // начатый и не завершённый уровень (в т.ч. переигровка старого) продолжается; ежедневный — нет
+  if (!st.over && !st.daily) {
     hideScreens();
     if (!st.touched) st.bornT = performance.now(); // поле ещё не трогали — пусть появится красиво
   }
@@ -454,6 +478,11 @@ $('open-levels').addEventListener('click', () => {
   unlock();
   sfx.click();
   showLevels();
+});
+$('open-daily').addEventListener('click', () => {
+  unlock();
+  sfx.click();
+  startDaily();
 });
 $('open-album').addEventListener('click', () => {
   unlock();
@@ -685,7 +714,7 @@ $('b-hint').addEventListener('click', () => {
 $('restart').addEventListener('click', () => {
   unlock();
   sfx.click();
-  startLevel(st.level);
+  startLevel(st.level, st.daily);
 });
 // серая подложка под фигурой — можно убрать, останутся только линии
 function updateBgButton() {

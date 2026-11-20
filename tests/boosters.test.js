@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initBoosters, grantForStars, spend } from '../src/boosters.js';
+import { initBoosters, grantForStars, grantSet, spend } from '../src/boosters.js';
 import { BOOSTERS } from '../src/config.js';
 
 describe('бустеры', () => {
@@ -26,5 +26,11 @@ describe('бустеры', () => {
     expect(spend(b, 'hint')).toBe(false);
     expect(spend(b, 'eraser')).toBe(false);
     expect(b.hint).toBe(0);
+  });
+
+  it('набор бустеров (ежедневная награда) — не больше максимума', () => {
+    const b = initBoosters({ hint: 0, eraser: BOOSTERS.max, life: 1, next: 0 });
+    expect(grantSet(b, { hint: 1, eraser: 1, life: 2 })).toEqual(['hint', 'life', 'life']);
+    expect(b).toMatchObject({ hint: 1, eraser: BOOSTERS.max, life: 3 });
   });
 });

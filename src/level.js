@@ -5,7 +5,7 @@
 // cells[0] — голова (нос), дальше тело к хвосту по соседним клеткам (может изгибаться).
 // Инварианты: cells[1] = голова − dir (последний отрезок смотрит туда же, куда нос);
 // ни одна своя клетка не лежит на луче головы — поэтому тело никогда не мешает себе.
-import { DIFFICULTY, GEN_JITTER, RHYTHM } from './config.js';
+import { DIFFICULTY, GEN_JITTER, RHYTHM, DAILY } from './config.js';
 import { SHAPES, RECT, shapeMask, shapeAspect, shapeFill } from './shapes.js';
 import { LANDMARKS } from './landmarks.js';
 import { OBJECTS } from './shapes-objects.js';
@@ -80,6 +80,23 @@ export function shapeFor(levelNum) {
   const r = Math.floor(j / L);
   if (!permCache.has(r)) permCache.set(r, permutation(L, r * 7919 + 3));
   return RECOGNIZABLE[permCache.get(r)[j % L]];
+}
+
+// Номер дня от DAILY.epoch по местной дате (0, 1, 2…)
+export function dayIndex(date) {
+  const [y, m, d] = DAILY.epoch;
+  return Math.max(0, Math.round((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(y, m, d)) / 864e5));
+}
+
+// Ежедневный уровень: «виртуальный» номер уровня на большом такте с узнаваемой фигурой,
+// каждый день — новый круг ритма далеко за обычными уровнями
+export function dailyLevel(day) {
+  const C = RHYTHM.cycle.length;
+  const slots = [];
+  RHYTHM.cycle.forEach((b, i) => {
+    if (b.named && b.tag === 'big') slots.push(i);
+  });
+  return RHYTHM.introLevels + 1 + (DAILY.firstRound + day) * C + slots[day % slots.length];
 }
 
 // Параметры уровня: базовая ступень сложности × «такт» ритма (лёгкий / обычный / сложный / большой)
