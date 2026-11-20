@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.*
+# референсы — чужие скриншоты, в публичный репозиторий не кладём
+refs/
+.claude/settings.local.json

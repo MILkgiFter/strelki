@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F4F1EA" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Стрелки" />
+  <title>Стрелки</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header class="hud hud-top">
+    <div class="hud-left">
+      <div class="level" id="level">Уровень 1</div>
+      <div class="stars-total" id="stars-total">★ 0</div>
+      <div class="level-info" id="level-info"></div>
+    </div>
+    <div class="hud-right">
+      <div class="hearts" id="hearts" data-i18n-aria="lives" aria-label="Жизни"></div>
+      <button class="icon-btn" id="sound" aria-label="Выключить звук">🔊</button>
+      <button class="icon-btn" id="to-menu" data-i18n-aria="menu" aria-label="Меню">☰</button>
+    </div>
+  </header>
+
+  <canvas id="board"></canvas>
+  <div class="finale" id="finale" hidden></div>
+  <div class="tutorial" id="tutorial" hidden>Тапни по стрелке — она улетит, если путь свободен</div>
+
+  <footer class="hud hud-bottom">
+    <button class="boost" id="b-hint" data-i18n-aria="bHint"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="#5B7FFF" stroke-width="3"/><path d="M15 15 L20.5 20.5" stroke="#5B7FFF" stroke-width="3.4" stroke-linecap="round"/></svg><span class="boost-label" data-i18n="bHint"></span><span class="badge" id="c-hint">0</span></button>
+    <button class="boost" id="b-eraser" data-i18n-aria="bEraser"><svg viewBox="0 0 24 24"><path d="M3.5 15.5 L12.5 6.5 L19 13 L11.5 20.5 H7.5 Z" fill="#FF8FB1" stroke="#E0567F" stroke-width="2" stroke-linejoin="round"/><path d="M8 11 L14.5 17.5" stroke="#E0567F" stroke-width="2"/><path d="M12 20.5 H20.5" stroke="#E0567F" stroke-width="2" stroke-linecap="round"/></svg><span class="boost-label" data-i18n="bEraser"></span><span class="badge" id="c-eraser">0</span></button>
+    <button class="boost" id="b-life" data-i18n-aria="bLife"><svg viewBox="0 0 24 24"><path d="M12 20.5 C5 15.5 2.5 12 2.5 8.6 C2.5 6 4.5 4 7 4 C9 4 10.6 5.2 12 7 C13.4 5.2 15 4 17 4 C19.5 4 21.5 6 21.5 8.6 C21.5 12 19 15.5 12 20.5 Z" fill="#FF7A59"/><path d="M12 9 V15 M9 12 H15" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg><span class="boost-label" data-i18n="bLife"></span><span class="badge" id="c-life">0</span></button>
+    <button class="boost boost-ghost" id="restart" data-i18n-aria="restart"><svg viewBox="0 0 24 24"><path d="M19.5 12 A7.5 7.5 0 1 1 17.3 6.7" fill="none" stroke="#2E2A24" stroke-width="2.8" stroke-linecap="round"/><path d="M18.5 3 V7.5 H14" fill="none" stroke="#2E2A24" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="boost-label" data-i18n="restart"></span></button>
+  </footer>
+  <div class="side">
+    <button class="icon-btn" id="bg-toggle" aria-label="Убрать фон" title="Фон под фигурой">▦</button>
+    <div class="zoom" id="zoom" hidden>
+      <button class="icon-btn" id="zoom-in" data-i18n-aria="zoomIn" aria-label="Приблизить">+</button>
+      <button class="icon-btn" id="zoom-out" data-i18n-aria="zoomOut" aria-label="Отдалить">−</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="card">
+      <div class="stars" id="ov-stars" hidden>
+        <span class="star">★</span><span class="star big">★</span><span class="star">★</span>
+      </div>
+      <div class="card-title" id="ov-title"></div>
+      <div class="card-sub" id="ov-sub"></div>
+      <div class="card-reward" id="ov-reward" hidden></div>
+      <button class="btn btn-big" id="ov-btn"></button>
+      <button class="btn btn-ghost ov-continue" id="ov-continue" hidden></button>
+      <button class="link-btn" id="ov-menu" data-i18n="menu">Меню</button>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="toast" id="toast" hidden></div>
+
+  <section class="screen" id="menu" hidden>
+    <button class="lang-btn" id="lang" data-i18n-aria="langSwitch">EN</button>
+    <div class="brand brand-small" aria-hidden="true">
+      <span class="tile t1">↑</span><span class="tile t2">→</span><span class="tile t3">↓</span><span class="tile t4">←</span>
+      <div class="word" data-word></div>
+    </div>
+    <h1 class="sr-only" data-i18n="title">Стрелки</h1>
+    <div class="menu-stars" id="menu-stars">★ 0</div>
+    <div class="menu-buttons">
+      <button class="btn btn-big" id="play"><span data-i18n="play">Играть</span> <span class="btn-note" id="play-level">уровень 1</span></button>
+      <button class="btn btn-ghost btn-big" id="open-levels" data-i18n="levels">Уровни</button>
+    </div>
+  </section>
+
+  <section class="screen screen-levels" id="levels" hidden>
+    <header class="levels-head">
+      <button class="icon-btn" id="levels-back" data-i18n-aria="back" aria-label="Назад">‹</button>
+      <div class="levels-title" data-i18n="levels">Уровни</div>
+      <div class="stars-total" id="levels-stars">★ 0</div>
+    </header>
+    <div class="levels-grid" id="levels-grid"></div>
+  </section>
+
+  <!-- заставка при запуске: логотип, плитки-стрелки, плавающие змейки, полоса загрузки -->
+  <section class="splash" id="splash">
+    <div class="splash-art" id="splash-art" aria-hidden="true"></div>
+    <div class="brand" aria-hidden="true">
+      <span class="tile t1">↑</span><span class="tile t2">→</span><span class="tile t3">↓</span><span class="tile t4">←</span>
+      <div class="word" data-word></div>
+    </div>
+    <div class="loader"><div class="loader-fill" id="loader-fill"></div></div>
+    <div class="loader-text" data-i18n="loading">Загрузка…</div>
+  </section>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

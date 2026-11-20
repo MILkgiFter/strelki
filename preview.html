@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Превью уровней</title>
+  <style>
+    body { margin: 0; background: #F4F1EA; font-family: system-ui, sans-serif; color: #2E2A24; }
+    .bar { padding: 12px 16px; font-size: 14px; }
+    .wrap { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 8px 16px; }
+    figure { margin: 0; background: #fff; border-radius: 12px; overflow: hidden; width: min-content; }
+    canvas { display: block; }
+    figcaption { font-size: 13px; padding: 6px 10px; }
+  </style>
+</head>
+<body>
+  <!-- Инструмент разработки: галерея уровней. ?from=3&to=20 — уровни; ?shapes=1 — все фигуры (&set=objects|nature|landmarks|shapes, &res=20 — сетка маски); ?w=260 — ширина карточки -->
+  <div class="bar" id="bar"></div>
+  <div class="wrap" id="wrap"></div>
+  <script type="module">
+    import { generate, pieces, analyze } from '/src/level.js';
+    import { render } from '/src/render.js';
+    import { SHAPES, shapeMask, shapeAspect } from '/src/shapes.js';
+    import { OBJECTS } from '/src/shapes-objects.js';
+    import { NATURE } from '/src/shapes-nature.js';
+    import { LANDMARKS } from '/src/landmarks.js';
+    import { abstractShape, KINDS } from '/src/abstract.js';
+    // ?set=objects | nature | landmarks — только этот набор
+    // abstract — по 3 примера каждого вида абстрактных фигур
+    const ABSTRACT = KINDS.flatMap((k) => [11, 23, 37].map((seed) => ({ ...abstractShape(seed, k), id: k + seed })));
+    const SETS = { shapes: SHAPES, objects: OBJECTS, nature: NATURE, landmarks: LANDMARKS, abstract: ABSTRACT };
+    const q = new URLSearchParams(location.search);
+    const W = Number(q.get('w') || 260);
+    const H = Math.round(W * 1.9);
+    const wrap = document.getElementById('wrap');
+    function card(title, st) {
+      const fig = document.createElement('figure');
+      const cv = document.createElement('canvas');
+      // рисуем как на телефоне 390×812 и уменьшаем до карточки
+      cv.width = 390 * 2;
+      cv.height = 812 * 2;
+      cv.style.width = W + 'px';
+      cv.style.height = Math.round((W * 812) / 390) + 'px';
+      const ctx = cv.getContext('2d');
+      ctx.setTransform(2, 0, 0, 2, 0, 0);
+      render(ctx, 390, 812, st, performance.now());
+      const cap = document.createElement('figcaption');
+      cap.textContent = title;
+      fig.append(cv, cap);
+      wrap.append(fig);
+    }
+    const base = { bumps: new Map(), pops: new Map(), flyers: [], hint: null, press: null, shakeT0: -1e9, bornT: -1e9, tutorial: '' };
+    if (q.get('shapes')) {
+      const list = q.get('set') ? SETS[q.get('set')] : [...SHAPES, ...OBJECTS, ...NATURE, ...LANDMARKS];
+      for (const s of list) {
+        const a = shapeAspect(s);
+        const R = Number(q.get('res') || 20); // сторона сетки маски
+        const cols = Math.round(R * Math.sqrt(a));
+        const rows = Math.round(R / Math.sqrt(a));
+        const mask = shapeMask(s, cols, rows);
+        card(`${s.id} · ${s.name} · ${cols}×${rows}`, { ...base, level: 's' + s.id, grid: new Array(cols * rows).fill(null), list: [], mask, w: cols, h: rows });
+      }
+    } else {
+      const from = Number(q.get('from') || 1);
+      const to = Number(q.get('to') || from + 11);
+      for (let n = from; n <= to; n++) {
+        const g = generate(n);
+        const a = analyze(g.grid, g.w, g.h);
+        card(`ур. ${n} · ${g.shape.name || 'прямоугольник'} ${g.tag || ''} · ${g.w}×${g.h} · змеек ${a.count} · волн ${a.rounds}`,
+          { ...base, level: n, grid: g.grid, list: pieces(g.grid), mask: g.mask, w: g.w, h: g.h });
+      }
+    }
+    document.getElementById('bar').textContent = `Превью: ${location.search || '?from=1&to=12'} — карточка ${W}px`;
+  </script>
+</body>
+</html>
