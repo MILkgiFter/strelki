@@ -5,6 +5,7 @@ export const GAME = {
   storageKey: 'strelki.level',
   starsKey: 'strelki.stars', // { [уровень]: лучшие звёзды }
   soundKey: 'strelki.sound',
+  musicKey: 'strelki.music', // фоновая музыка вкл/выкл (по умолчанию вкл)
   bgKey: 'strelki.bg', // серая подложка под фигурой: вкл/выкл
   boostKey: 'strelki.boosters', // запас бустеров
   vibrateMs: 40, // вибрация при ошибке (мобильные)
@@ -34,9 +35,57 @@ export const STARS = {
 };
 
 export const SOUND = {
-  volume: 0.8,
+  volume: 0.9, // громкость эффектов (шина sfx)
+  master: 0.85, // общая громкость до компрессора
   comboWindowMs: 1500, // быстрые выпуски подряд повышают тон
-  comboMax: 12, // полутонов
+  comboMax: 8, // сколько ступеней пентатоники вверх от базовой
+  root: 60, // тоника (MIDI): C4; музыка в той же тональности
+  scale: [0, 2, 4, 7, 9], // мажорная пентатоника
+  reverbSec: 2.2, // длина импульса ревербератора
+  reverbSend: 0.22, // доля эффектов в реверб
+  comp: { threshold: -14, knee: 24, ratio: 3, attack: 0.004, release: 0.25 },
+  flyBase: 5, // ступень пентатоники для combo = 0 (5 = C5)
+  flyDur: 0.42, // длина «плинка», с (+ flyDurPerLen за клетку)
+  flyDurPerLen: 0.03,
+  flyVol: 0.75,
+  bumpVol: 1.0,
+  hintVol: 0.4,
+  winVol: 0.38,
+  starVol: 0.45,
+  loseVol: 0.4,
+  clickVol: 0.25,
+  winGap: 0.09, // пауза между нотами арпеджио, с
+};
+
+// Фоновая музыка (генеративная)
+export const MUSIC = {
+  enabled: true,
+  volume: 0.15, // заметно тише эффектов
+  bpm: 50,
+  chordBeats: 8, // длина аккорда в долях
+  fadeIn: 1.5, // плавное появление/затухание, с
+  fadeOut: 1.5,
+  lookahead: 1.6, // планируем наперёд, с
+  tickMs: 250, // период планировщика
+  padAttack: 1.8,
+  padRelease: 2.2,
+  padVol: 0.05, // на ноту пэда
+  padCutoff: [420, 950], // фильтр пэда: старт → конец аккорда, Гц
+  bassVol: 0.07,
+  dropProb: 0.4, // шанс капли на долю
+  dropVol: 0.16,
+  echoProb: 0.3, // шанс тихого эха капли
+  dropRange: [5, 13], // диапазон ступеней пентатоники (от root)
+  reverbSend: 0.55,
+  // Аккорды в C-мажоре (MIDI): низ — бас-нота, остальное — пэд
+  chords: [
+    [36, 52, 55, 59, 62], // Cmaj9
+    [33, 48, 52, 55, 59], // Am9
+    [41, 48, 52, 55, 57], // Fmaj9-ish
+    [43, 50, 52, 57, 59], // G6/9
+    [40, 55, 59, 62, 64], // Em7
+    [38, 53, 57, 60, 64], // Dm9/F
+  ],
 };
 
 // Сложность по номеру уровня:

@@ -33,6 +33,7 @@ body {
   border: 0; border-radius: 12px; background: #E7E1D5; cursor: pointer;
 }
 .icon-btn:active { transform: translateY(1px); }
+.icon-btn.off { opacity: .4; }
 
 .stars { display: flex; justify-content: center; align-items: flex-end; gap: 6px; margin-bottom: 12px; }
 .stars[hidden] { display: none; }

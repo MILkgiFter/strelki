@@ -2,7 +2,7 @@
 import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
-import { sfx, unlock, setEnabled, isEnabled } from './sound.js';
+import { sfx, unlock, setEnabled, isEnabled, music } from './sound.js';
 import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
@@ -63,6 +63,17 @@ if (!bestStars || typeof bestStars !== 'object') bestStars = {};
 const totalStars = () => Object.values(bestStars).reduce((s, v) => s + (Number(v) || 0), 0);
 
 setEnabled(load(GAME.soundKey, true) !== false);
+music.setEnabled(load(GAME.musicKey, true) !== false);
+// музыка стартует с первым касанием (раньше браузер не даёт звук)
+let musicStarted = false;
+function startMusic() {
+  if (musicStarted || !music.isEnabled()) return;
+  musicStarted = true;
+  unlock();
+  music.start();
+}
+document.addEventListener('pointerdown', startMusic, true);
+document.addEventListener('keydown', startMusic, true);
 // запас бустеров (в админке — бесконечный и не сохраняется)
 const boost = initBoosters(IS_ADMIN ? { hint: 50, eraser: 50, life: 50 } : load(GAME.boostKey, null));
 const saveBoost = () => {
@@ -153,6 +164,8 @@ function updateHud() {
   $('level-info').className = `level-info ${st.tag || ''}`;
   $('sound').textContent = isEnabled() ? '🔊' : '🔇';
   $('sound').setAttribute('aria-label', isEnabled() ? t('soundOff') : t('soundOn'));
+  $('music').classList.toggle('off', !music.isEnabled());
+  $('music').setAttribute('aria-label', music.isEnabled() ? t('musicOff') : t('musicOn'));
 }
 
 function showOverlay(title, sub, btn, action, stars = 0) {
@@ -751,6 +764,19 @@ $('bg-toggle').addEventListener('click', () => {
   st.showBg = !st.showBg;
   save(GAME.bgKey, st.showBg);
   updateBgButton();
+});
+$('music').addEventListener('click', () => {
+  music.setEnabled(!music.isEnabled());
+  save(GAME.musicKey, music.isEnabled());
+  sfx.click();
+  if (music.isEnabled()) {
+    musicStarted = false;
+    startMusic();
+  } else {
+    music.stop();
+    musicStarted = false;
+  }
+  updateHud();
 });
 $('sound').addEventListener('click', () => {
   setEnabled(!isEnabled());
