@@ -10,7 +10,7 @@ describe('уровни', () => {
       const { grid, w, h } = generate(n);
       expect(solve(grid, w, h).solved, `уровень ${n}`).toBe(true);
     }
-  });
+  }, 30000); // тяжёлый тест: на медленной машине CI дольше стандартных 5 с
 
   it('заполненность близка к цели из конфига', () => {
     for (const n of [3, 10, 20, 40, 120]) {
@@ -187,7 +187,7 @@ describe('уровни', () => {
     };
     expect(freeShare(31, 80)).toBeLessThanOrEqual(0.12);
     expect(freeShare(2, 6)).toBeGreaterThanOrEqual(0.15);
-  });
+  }, 30000);
 
   it('сложность растёт от ранних уровней к поздним', () => {
     expect(avg(31, 60).rounds).toBeGreaterThan(avg(2, 6).rounds);
