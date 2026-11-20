@@ -52,15 +52,16 @@ const P_EASY = { meander: 1, hook: 2 };
 const P_MID = { meander: 1, hook: 2, serp: 2 };
 const P_ALL = { meander: 1, hook: 2, serp: 2, zigzag: 1 };
 
+// ringLen — длина змеек краевого кольца, freeTarget — до какой доли свободных на старте разворачивать змейки
 export const DIFFICULTY = [
   { upTo: 1, snakes: 4, cols: 4, rows: 4, minLen: 2, maxLen: 3, turn: 0, fill: 0.6, tries: 1, bias: 0 },
   { upTo: 3, snakes: 9, cols: 6, rows: 8, minLen: 4, maxLen: 8, turn: 0.3, fill: 1, tries: 8, bias: 1, patterns: P_EASY },
   { upTo: 6, snakes: 13, cols: 8, rows: 11, minLen: 5, maxLen: 12, turn: 0.35, fill: 1, tries: 10, bias: 1.5, patterns: P_MID },
-  { upTo: 15, snakes: 18, cols: 10, rows: 14, minLen: 6, maxLen: 16, turn: 0.35, fill: 1, tries: 12, bias: 2, patterns: P_ALL },
-  { upTo: 30, snakes: 25, cols: 13, rows: 19, minLen: 6, maxLen: 20, turn: 0.35, fill: 1, tries: 10, bias: 2, patterns: P_ALL },
-  { upTo: 60, snakes: 34, cols: 16, rows: 24, minLen: 7, maxLen: 24, turn: 0.35, fill: 1, tries: 8, bias: 2, patterns: P_ALL },
-  { upTo: 100, snakes: 44, cols: 19, rows: 30, minLen: 8, maxLen: 26, turn: 0.35, fill: 1, tries: 6, bias: 2, patterns: P_ALL },
-  { upTo: Infinity, snakes: 54, cols: 22, rows: 36, minLen: 8, maxLen: 30, turn: 0.35, fill: 1, tries: 6, bias: 2, patterns: P_ALL },
+  { upTo: 15, snakes: 18, cols: 10, rows: 14, minLen: 6, maxLen: 16, turn: 0.35, fill: 1, tries: 12, bias: 2, patterns: P_ALL, ringLen: 40, freeTarget: 0.06 },
+  { upTo: 30, snakes: 25, cols: 13, rows: 19, minLen: 6, maxLen: 20, turn: 0.35, fill: 1, tries: 10, bias: 2, patterns: P_ALL, ringLen: 40, freeTarget: 0.06 },
+  { upTo: 60, snakes: 34, cols: 16, rows: 24, minLen: 7, maxLen: 24, turn: 0.35, fill: 1, tries: 8, bias: 2, patterns: P_ALL, ringLen: 40, freeTarget: 0.06 },
+  { upTo: 100, snakes: 44, cols: 19, rows: 30, minLen: 8, maxLen: 26, turn: 0.35, fill: 1, tries: 6, bias: 2, patterns: P_ALL, ringLen: 40, freeTarget: 0.06 },
+  { upTo: Infinity, snakes: 54, cols: 22, rows: 36, minLen: 8, maxLen: 30, turn: 0.35, fill: 1, tries: 6, bias: 2, patterns: P_ALL, ringLen: 40, freeTarget: 0.06 },
 ];
 
 // Ритм уровней: такты идут по кругу, чтобы за сложным был лёгкий, а раз в круг — большой.
@@ -98,6 +99,9 @@ export const RHYTHM = {
   minSide: 5,
   shapeMinSide: 16, // фигура узнаётся, если меньшая сторона ≥ стольких клеток
   cellsPerSnake: 9, // средняя длина змейки, под которую подбирается площадь
+  outwardK: 0.02, // вес головы, смотрящей сразу наружу фигуры (такая змейка свободна с начала уровня)
+  outwardLatePasses: 1, // головы «сразу наружу» разрешены только в последних проходах
+  freeWeight: 150, // вес доли свободных на старте при выборе лучшего варианта уровня
   passes: 5, // проходов «поставить головы» (короткие змейки — только в последних двух)
   minStub: 4, // змейки короче не ставятся в первых проходах генератора (меньше «огрызков»)
 };

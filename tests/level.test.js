@@ -174,6 +174,21 @@ describe('уровни', () => {
     expect(s.rounds).toBeGreaterThanOrEqual(8);
   });
 
+  it('мало вариантов хода: с 31-го уровня свободно на старте ≤ 12% змеек, на 2–6 — заметно больше', () => {
+    const freeShare = (a, b) => {
+      let t = 0;
+      for (let l = a; l <= b; l++) {
+        const g = generate(l);
+        const s = analyze(g.grid, g.w, g.h);
+        expect(s.solved).toBe(true);
+        t += s.freeStart / s.count;
+      }
+      return t / (b - a + 1);
+    };
+    expect(freeShare(31, 80)).toBeLessThanOrEqual(0.12);
+    expect(freeShare(2, 6)).toBeGreaterThanOrEqual(0.15);
+  });
+
   it('сложность растёт от ранних уровней к поздним', () => {
     expect(avg(31, 60).rounds).toBeGreaterThan(avg(2, 6).rounds);
   });

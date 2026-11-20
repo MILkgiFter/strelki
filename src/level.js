@@ -159,13 +159,14 @@ export function generate(levelNum) {
   let bestScore = -Infinity;
   const mask = shapeMask(p.shape, p.cols, p.rows);
   for (let t = 0; t < p.tries; t++) {
-    const grid = buildOnce(p, rand, mask);
+    const grid = p.ringLen ? buildRinged(p, rand, mask) : buildOnce(p, rand, mask);
     const s = score(analyze(grid, p.cols, p.rows));
     if (s > bestScore) {
       bestScore = s;
       best = grid;
     }
   }
+  if (p.freeTarget) flipFree(best, p.cols, p.rows, p.freeTarget);
   colorize(best, p.cols, p.rows, rand);
   // пустых точек внутри фигуры не остаётся: незанятые клетки (куда змейку поставить нельзя) убираем из фигуры
   let shown = mask;
@@ -178,7 +179,59 @@ export function generate(levelNum) {
 
 // Чем меньше змеек свободно на старте и чем длиннее цепочка — тем сложнее
 function score({ count, freeStart, rounds }) {
-  return rounds * 2 - (freeStart / count) * 10;
+  return rounds * 2 - (freeStart / count) * RHYTHM.freeWeight;
+}
+
+// Постройка в две фазы: сначала внутренность, потом кольцо по краю фигуры длинными змейками.
+// Если строить всё сразу от центра, к краю лучи внутрь и вдоль края уже закрыты — краевые змейки
+// смотрят наружу и свободны с самого начала (лишние варианты хода). Змейки кольца идут вдоль края
+// и закрывают друг друга. Сетка, лучи и нумерация общие — проходимость гарантирована как прежде.
+function buildRinged(p, rand, mask) {
+  const { cols: W, rows: H } = p;
+  const ring = new Uint8Array(mask.length);
+  const inner = mask.slice();
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const c = y * W + x;
+      if (!mask[c]) continue;
+      let edge = false;
+      for (let dy = -1; dy <= 1 && !edge; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const X = x + dx;
+          const Y = y + dy;
+          if (X < 0 || Y < 0 || X >= W || Y >= H || !mask[Y * W + X]) edge = true;
+        }
+      }
+      if (edge) {
+        ring[c] = 1;
+        inner[c] = 0;
+      }
+    }
+  }
+  const ctx = {};
+  buildOnce(p, rand, inner, mask, ctx);
+  return buildOnce({ ...p, maxLen: p.ringLen }, rand, ring, mask, ctx);
+}
+
+// Свободные на старте змейки (от поставленных последними) разворачиваются: нос — на место хвоста.
+// Разворот остаётся, только если уровень решаем и свободных на старте стало меньше.
+function flipFree(grid, w, h, target) {
+  let st = analyze(grid, w, h);
+  const list = pieces(grid).sort((a, b) => b.id - a.id);
+  for (const p of list) {
+    if (st.freeStart / st.count <= target) break;
+    if (p.len < 2 || !isFree(grid, w, h, p)) continue;
+    const a = p.cells[p.len - 2];
+    const b = p.cells[p.len - 1];
+    const dx = (b % w) - (a % w);
+    const dy = Math.floor(b / w) - Math.floor(a / w);
+    const dir = DIR_KEYS.find((k) => DIRS[k][0] === dx && DIRS[k][1] === dy);
+    const old = { cells: p.cells, head: p.head, dir: p.dir };
+    Object.assign(p, { cells: p.cells.slice().reverse(), head: b, dir });
+    const s = analyze(grid, w, h);
+    if (s.solved && s.freeStart < st.freeStart) st = s;
+    else Object.assign(p, old);
+  }
 }
 
 // Узор тела змейки — «руль» на каждом шаге роста от головы к хвосту: 'S' прямо, 'L'/'R' поворот.
@@ -245,20 +298,21 @@ function makePattern(weights, turn, rand) {
   };
 }
 
-function buildOnce({ cols: W, rows: H, fill, bias, minLen, maxLen, turn, patterns = { meander: 1 } }, rand, mask) {
+// mask — где ставить змеек в этой фазе, fmask — вся фигура (для веса лучей), ctx — общее состояние фаз
+function buildOnce({ cols: W, rows: H, fill, bias, minLen, maxLen, turn, patterns = { meander: 1 } }, rand, mask, fmask = mask, ctx = {}) {
   const N = W * H;
   let inside = 0;
   for (let i = 0; i < N; i++) inside += mask[i];
-  const grid = new Array(N).fill(null);
+  const grid = ctx.grid || (ctx.grid = new Array(N).fill(null));
   // rayMax[c] — наибольший id змейки, чей луч проходит через клетку c
-  const rayMax = new Int32Array(N).fill(-1);
+  const rayMax = ctx.rayMax || (ctx.rayMax = new Int32Array(N).fill(-1));
   const target = Math.max(2, Math.round(inside * fill));
   // клетка доступна змейке: внутри фигуры и не занята
   const open = (c) => mask[c] && !grid[c];
   const inb = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
   const cx = (W - 1) / 2;
   const cy = (H - 1) / 2;
-  const all = [];
+  const all = ctx.all || (ctx.all = []);
   let filled = 0;
 
   // 1) головы: обход пустых клеток от центра наружу; тело растёт случайным блужданием
@@ -288,11 +342,18 @@ function buildOnce({ cols: W, rows: H, fill, bias, minLen, maxLen, turn, pattern
         if (!single && (!inb(bx, by) || !open(by * W + bx))) continue;
         const pr = probe(grid, W, H, x, y, dir);
         if (pr.blocked) continue;
-        const wgt = Math.pow(pr.free + 1, bias);
-        options.push([dir, wgt]);
+        // вес — сколько клеток фигуры на луче ещё свободны: их займут следующие змейки и закроют путь.
+        // Клетки вне фигуры не считаются — их никто не займёт, такая змейка будет свободна с самого начала
+        let fillable = 0;
+        for (let ax = x + dx, ay = y + dy; inb(ax, ay); ax += dx, ay += dy) if (fmask[ay * W + ax] && !grid[ay * W + ax]) fillable++;
+        const wgt = Math.pow(fillable + 1, bias) * (fillable ? 1 : RHYTHM.outwardK);
+        options.push([dir, wgt, fillable]);
         total += wgt;
       }
       if (!options.length) continue;
+      // голову, которой некуда смотреть, кроме как сразу наружу, в первых проходах не ставим:
+      // клетку займёт хвост соседа, иначе такая змейка свободна с самого начала (лишний вариант хода)
+      if (pass < RHYTHM.passes - RHYTHM.outwardLatePasses && options.every((o) => o[2] === 0)) continue;
       let r = rand() * total;
       let dir = options[options.length - 1][0];
       for (const [d, wgt] of options) {
@@ -397,6 +458,8 @@ function buildOnce({ cols: W, rows: H, fill, bias, minLen, maxLen, turn, pattern
       const [tx, ty] = cellXY(p.cells[p.cells.length - 1], W);
       for (const d of DIR_KEYS) {
         const [ex, ey] = DIRS[d];
+        // у стрелки из одной клетки хвост растёт только назад: последний отрезок смотрит туда же, куда нос
+        if (p.cells.length === 1 && (ex !== -fdx || ey !== -fdy)) continue;
         const nx = tx + ex;
         const ny = ty + ey;
         if (!inb(nx, ny)) continue;
