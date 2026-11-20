@@ -35,6 +35,19 @@ body {
 .icon-btn:active { transform: translateY(1px); }
 .icon-btn.off { opacity: .4; }
 
+/* микшер: карточка под кнопкой 🔊 */
+.mixer {
+  position: fixed; top: calc(76px + var(--safe-t)); right: calc(16px + var(--safe-r)); z-index: 5;
+  width: 260px; max-width: calc(100vw - 32px); background: #fff; border-radius: 18px; padding: 14px 16px 10px;
+  box-shadow: 0 10px 30px rgba(46,42,36,.18); animation: fade .2s ease-out;
+}
+.mixer[hidden] { display: none; }
+.mixer-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.mixer-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; font-size: 14px; font-weight: 600; }
+.mixer-ico { width: 22px; text-align: center; }
+.mixer-name { width: 64px; }
+.mixer-row input[type=range] { flex: 1; min-width: 0; accent-color: #5B7FFF; height: 28px; }
+
 .stars { display: flex; justify-content: center; align-items: flex-end; gap: 6px; margin-bottom: 12px; }
 .stars[hidden] { display: none; }
 .star {

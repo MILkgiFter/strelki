@@ -2,7 +2,7 @@
 import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
-import { sfx, unlock, setEnabled, isEnabled, music } from './sound.js';
+import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
 import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
@@ -44,7 +44,7 @@ function load(key, fallback) {
   }
 }
 function save(key, value) {
-  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key || key === BOOSTERS.coachKey)) return;
+  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key || key === BOOSTERS.coachKey || key === GAME.volKey)) return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
@@ -62,8 +62,22 @@ let bestStars = load(GAME.starsKey, {});
 if (!bestStars || typeof bestStars !== 'object') bestStars = {};
 const totalStars = () => Object.values(bestStars).reduce((s, v) => s + (Number(v) || 0), 0);
 
-setEnabled(load(GAME.soundKey, true) !== false);
-music.setEnabled(load(GAME.musicKey, true) !== false);
+// микшер: громкость музыки и звуков 0..1 (старые выключатели переносятся: выкл = 0)
+const vol = (() => {
+  const v = load(GAME.volKey, null);
+  const ok = (x) => Number.isFinite(Number(x)) ? Math.min(1, Math.max(0, Number(x))) : null;
+  return {
+    music: ok(v?.music) ?? (load(GAME.musicKey, true) === false ? 0 : 1),
+    sfx: ok(v?.sfx) ?? (load(GAME.soundKey, true) === false ? 0 : 1),
+  };
+})();
+function applyVolume() {
+  setEnabled(vol.sfx > 0);
+  setSfxVolume(vol.sfx);
+  music.setEnabled(vol.music > 0);
+  music.setVolume(vol.music);
+}
+applyVolume();
 // музыка стартует с первым касанием (раньше браузер не даёт звук)
 let musicStarted = false;
 function startMusic() {
@@ -162,10 +176,7 @@ function updateHud() {
   const info = [shapeName(st.shape), t('tags')[st.tag]].filter(Boolean).join(' · ');
   $('level-info').textContent = info;
   $('level-info').className = `level-info ${st.tag || ''}`;
-  $('sound').textContent = isEnabled() ? '🔊' : '🔇';
-  $('sound').setAttribute('aria-label', isEnabled() ? t('soundOff') : t('soundOn'));
-  $('music').classList.toggle('off', !music.isEnabled());
-  $('music').setAttribute('aria-label', music.isEnabled() ? t('musicOff') : t('musicOn'));
+  $('sound').textContent = vol.sfx > 0 || vol.music > 0 ? '🔊' : '🔇';
 }
 
 function showOverlay(title, sub, btn, action, stars = 0) {
@@ -257,8 +268,8 @@ function useHint() {
   spend(boost, 'hint');
   saveBoost();
   st.hint = { id: piece.id, t0: performance.now() };
-  // на приближенном поле подсказанная змейка может быть за краем экрана — подводим камеру
-  if (st.cam.z > 1) {
+  // на приближенном или сдвинутом поле подсказанная змейка может быть за краем экрана — подводим камеру
+  if (st.cam.z > 1 || st.cam.ox || st.cam.oy) {
     const L = view(window.innerWidth, window.innerHeight, st);
     const [hx, hy] = cellXY(piece.head, st.w);
     const [cx, cy] = viewCenter();
@@ -598,11 +609,7 @@ function maxZoom() {
 function clampCam() {
   const c = st.cam;
   c.z = Math.min(maxZoom(), Math.max(1, c.z));
-  if (c.z === 1) {
-    c.ox = 0;
-    c.oy = 0;
-    return;
-  }
+  // поле двигается при любом масштабе, но его край не уходит дальше центра экрана
   const L = view(window.innerWidth, window.innerHeight, st);
   const cx = window.innerWidth / 2;
   const cy = (L.top + L.bottom) / 2;
@@ -692,7 +699,7 @@ canvas.addEventListener('pointermove', (e) => {
     return;
   }
   if (gesture.id !== e.pointerId) return;
-  if (gesture.kind === 'tap' && st.cam.z > 1 && Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > CAMERA.dragPx) {
+  if (gesture.kind === 'tap' && Math.hypot(e.clientX - gesture.x0, e.clientY - gesture.y0) > CAMERA.dragPx) {
     gesture.kind = 'pan';
     st.press = null;
   }
@@ -765,26 +772,37 @@ $('bg-toggle').addEventListener('click', () => {
   save(GAME.bgKey, st.showBg);
   updateBgButton();
 });
-$('music').addEventListener('click', () => {
-  music.setEnabled(!music.isEnabled());
-  save(GAME.musicKey, music.isEnabled());
-  sfx.click();
-  if (music.isEnabled()) {
-    musicStarted = false;
-    startMusic();
-  } else {
-    music.stop();
-    musicStarted = false;
+// ---------- микшер ----------
+function showMixer(on) {
+  $('mixer').hidden = !on;
+  if (on) {
+    $('vol-music').value = Math.round(vol.music * 100);
+    $('vol-sfx').value = Math.round(vol.sfx * 100);
   }
-  updateHud();
-});
+}
 $('sound').addEventListener('click', () => {
-  setEnabled(!isEnabled());
-  save(GAME.soundKey, isEnabled());
   unlock();
   sfx.click();
+  showMixer($('mixer').hidden);
+});
+$('vol-music').addEventListener('input', (e) => {
+  vol.music = e.target.value / 100;
+  applyVolume();
+  if (vol.music > 0) startMusic();
   updateHud();
 });
+$('vol-sfx').addEventListener('input', (e) => {
+  vol.sfx = e.target.value / 100;
+  applyVolume();
+  updateHud();
+});
+// отпустил ползунок звуков — короткий пример, чтобы услышать громкость
+$('vol-sfx').addEventListener('change', () => sfx.fly(0, 3));
+for (const id of ['vol-music', 'vol-sfx']) $(id).addEventListener('change', () => save(GAME.volKey, vol));
+// тап мимо карточки закрывает микшер
+document.addEventListener('pointerdown', (e) => {
+  if (!$('mixer').hidden && !e.target.closest('#mixer, #sound')) showMixer(false);
+}, true);
 
 // ---------- цикл ----------
 // отступы безопасной зоны: env() читается только из CSS, поэтому — через невидимый элемент

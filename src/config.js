@@ -5,7 +5,8 @@ export const GAME = {
   storageKey: 'strelki.level',
   starsKey: 'strelki.stars', // { [уровень]: лучшие звёзды }
   soundKey: 'strelki.sound',
-  musicKey: 'strelki.music', // фоновая музыка вкл/выкл (по умолчанию вкл)
+  musicKey: 'strelki.music', // фоновая музыка вкл/выкл (старое сохранение, читается для переноса)
+  volKey: 'strelki.vol', // микшер: { music: 0..1, sfx: 0..1 }
   bgKey: 'strelki.bg', // серая подложка под фигурой: вкл/выкл
   boostKey: 'strelki.boosters', // запас бустеров
   vibrateMs: 40, // вибрация при ошибке (мобильные)
@@ -39,52 +40,100 @@ export const SOUND = {
   master: 0.85, // общая громкость до компрессора
   comboWindowMs: 1500, // быстрые выпуски подряд повышают тон
   comboMax: 8, // сколько ступеней пентатоники вверх от базовой
-  root: 60, // тоника (MIDI): C4; музыка в той же тональности
-  scale: [0, 2, 4, 7, 9], // мажорная пентатоника
   reverbSec: 2.2, // длина импульса ревербератора
   reverbSend: 0.22, // доля эффектов в реверб
   comp: { threshold: -14, knee: 24, ratio: 3, attack: 0.004, release: 0.25 },
   flyBase: 5, // ступень пентатоники для combo = 0 (5 = C5)
   flyDur: 0.42, // длина «плинка», с (+ flyDurPerLen за клетку)
   flyDurPerLen: 0.03,
-  flyVol: 0.75,
+  flyVol: 0.32,
+  whooshDur: 0.18, // «вжух» при вылете, с (+ whooshPerLen за клетку длины)
+  whooshPerLen: 0.03,
+  whooshVol: 0.2,
+  sparkleCombo: 6, // с какого combo добавляется блёстка
   bumpVol: 1.0,
   hintVol: 0.4,
   winVol: 0.38,
   starVol: 0.45,
   loseVol: 0.4,
-  clickVol: 0.25,
+  clickVol: 0.65, // тихий нейтральный тик кнопок (шум)
+  flyFallback: { inst: 'kalimba', variants: [[0, 2]], gap: 0.075, dur: 0.4, vol: 1, whoosh: 1 },
+  clickFreq: 1400, // центр полосы тика, Гц
   winGap: 0.09, // пауза между нотами арпеджио, с
 };
 
 // Фоновая музыка (генеративная)
 export const MUSIC = {
   enabled: true,
-  volume: 0.15, // заметно тише эффектов
-  bpm: 50,
-  chordBeats: 8, // длина аккорда в долях
+  volume: 0.075, // фон: заметно тише эффектов
   fadeIn: 1.5, // плавное появление/затухание, с
   fadeOut: 1.5,
+  themeFade: 2, // кроссфейд при смене темы, с
+  themeMinutes: 2, // каждые N минут (звучащей музыки) включается другая случайная тема
+  playSec: [40, 90], // фраза/цикл темы звучит столько секунд…
+  restSec: [15, 40], // …потом столько секунд тишины
+  // усталость: чем дольше непрерывная сессия, тем реже и тише (сбрасывается новым start())
+  fatigue: { afterMin: 10, restMul: 2, volDrop: 0.3 },
   lookahead: 1.6, // планируем наперёд, с
   tickMs: 250, // период планировщика
-  padAttack: 1.8,
-  padRelease: 2.2,
-  padVol: 0.05, // на ноту пэда
-  padCutoff: [420, 950], // фильтр пэда: старт → конец аккорда, Гц
-  bassVol: 0.07,
-  dropProb: 0.4, // шанс капли на долю
-  dropVol: 0.16,
-  echoProb: 0.3, // шанс тихого эха капли
-  dropRange: [5, 13], // диапазон ступеней пентатоники (от root)
   reverbSend: 0.55,
-  // Аккорды в C-мажоре (MIDI): низ — бас-нота, остальное — пэд
-  chords: [
-    [36, 52, 55, 59, 62], // Cmaj9
-    [33, 48, 52, 55, 59], // Am9
-    [41, 48, 52, 55, 57], // Fmaj9-ish
-    [43, 50, 52, 57, 59], // G6/9
-    [40, 55, 59, 62, 64], // Em7
-    [38, 53, 57, 60, 64], // Dm9/F
+  // Темы. root — тоника (MIDI), chords — сдвиги в полутонах от root (первый — бас),
+  // penta — ступени для эффектов, scale — лад мелодии,
+  // melody.motif — рисунок по ступеням лада относительно base (null — пауза): узнаваем, но
+  // каждый раз с вариацией (сдвиг регистра shifts, мутации vary, пропуски skip, целые аккорды без мелодии restChord).
+  themes: [
+    {
+      id: 'morning', name: { ru: 'Утро', en: 'Morning' },
+      root: 60, penta: [0, 2, 4, 7, 9], scale: [0, 2, 4, 7, 9],
+      bpm: 50, chordBeats: 8, order: 'random', vol: 0.9,
+      chords: [[-24, -8, -5, -1, 2], [-27, -12, -8, -5, -1], [-19, -12, -8, -5, -3], [-17, -10, -8, -3, -1]],
+      fly: { inst: 'kalimba', variants: [[0, 2], [0, 3], [0, 1, 3]], gap: 0.075, dur: 0.4, vol: 1, whoosh: 1 },
+      pad: { type: 'triangle', vol: 0.05, bass: 0.06, cutoff: [380, 800], attack: 2.2, release: 2.6 },
+      melody: { inst: 'kalimba', grid: 1, base: 2, shifts: [-1, 0, 0, 1], dur: 2.4, vol: 0.12, skip: 0.3, restChord: 0.3, vary: 0.5, cut: 1800, attack: 0.03, echo: 0, echoBeats: 1.5,
+        motif: [0, null, 2, null, null, 1, null, null, 3, null, null, null, 2, null, null, null] },
+    },
+    {
+      id: 'garden', name: { ru: 'Сад', en: 'Garden' },
+      root: 62, penta: [0, 3, 5, 7, 10], scale: [0, 2, 3, 5, 7, 9, 10],
+      bpm: 48, chordBeats: 8, order: 'random', vol: 0.6,
+      chords: [[-24, -9, -5, -2, 2], [-19, -12, -3, 0, 2], [-26, -10, -7, -3, 0], [-17, -14, -10, -7, -3]],
+      fly: { inst: 'flute', variants: [[0], [0, 2], [0, 1]], gap: 0.1, dur: 0.55, vol: 0.6, whoosh: 0.9 },
+      pad: { type: 'sine', vol: 0.055, bass: 0.06, cutoff: [340, 700], attack: 2.4, release: 2.6 },
+      melody: { inst: 'flute', grid: 2, base: 3, shifts: [-1, 0, 0, 1], dur: 4.5, vol: 0.12, skip: 0.25, restChord: 0.25, vary: 0.5, echo: 0, echoBeats: 2,
+        motif: [0, null, 2, null, 3, null, null, null, 1, null, null, null] },
+    },
+    {
+      id: 'water', name: { ru: 'Вода', en: 'Water' },
+      root: 65, penta: [0, 2, 4, 6, 9], scale: [0, 2, 4, 6, 7, 9, 11],
+      bpm: 48, chordBeats: 8, order: 'random', vol: 1.05,
+      chords: [[-24, -17, -13, -8, -6], [-22, -15, -10, -8, -6], [-27, -15, -12, -8, -5], [-20, -13, -10, -5, -1]],
+      fly: { inst: 'harp', variants: [[0, 2, 4], [0, 2], [0, 1, 3]], gap: 0.06, dur: 0.6, vol: 0.8, whoosh: 0.7 },
+      pad: { type: 'triangle', vol: 0.04, bass: 0.055, cutoff: [360, 760], attack: 2.4, release: 2.6 },
+      melody: { inst: 'harp', grid: 1, base: 3, shifts: [-2, -1, 0, 0, 1], dur: 3, vol: 0.1, skip: 0.45, restChord: 0.3, vary: 0.5, cut: 1600, attack: 0.03, echo: 0.3, echoBeats: 1.5,
+        motif: [0, null, 3, null, null, 5, null, null, 2, null, null, null, null] },
+    },
+    {
+      id: 'night', name: { ru: 'Ночь', en: 'Night' },
+      root: 57, penta: [0, 3, 5, 7, 10], scale: [0, 2, 3, 5, 7, 8, 10],
+      bpm: 40, chordBeats: 8, order: 'cycle', vol: 0.65,
+      chords: [[-24, -5, -2, 2, 3], [-16, -9, 0, 3, 7], [-19, -7, -4, 0, 3], [-17, -5, -2, 2, 5]],
+      fly: { inst: 'bell', variants: [[0, 2], [0, 3], [0]], gap: 0.09, dur: 0.8, vol: 0.8, whoosh: 0.5 },
+      pad: { type: 'triangle', vol: 0.06, bass: 0.06, cutoff: [300, 600], attack: 2.8, release: 3.2 },
+      melody: { inst: 'bell', grid: 2, base: 4, shifts: [-1, 0, 0, 1], dur: 4, vol: 0.08, skip: 0.5, restChord: 0.4, vary: 0.5, cut: 1300, attack: 0.06, echo: 0.25, echoBeats: 2,
+        motif: [0, null, null, 3, null, null, 1, null, null, null] },
+    },
+    {
+      id: 'lofi', name: { ru: 'Лофи', en: 'Lo-fi' },
+      root: 58, penta: [0, 2, 4, 7, 9], scale: [0, 2, 4, 7, 9],
+      bpm: 66, chordBeats: 16, order: 'cycle', vol: 1.5,
+      chords: [[-12, -1, 4, 7, 14], [-15, -5, 0, 4, 11], [-10, 0, 4, 5, 9], [-17, -7, -1, 4]],
+      fly: { inst: 'rhodes', variants: [[0, 2], [0, 3], [0, 1]], gap: 0.08, dur: 0.5, vol: 0.9, whoosh: 0.6 },
+      pad: { type: 'sine', vol: 0, bass: 0.07, cutoff: [500, 500], attack: 0.4, release: 1.2 },
+      hits: { vol: 0.06, slots: [0, 5] },
+      drums: { kick: 0.16, hat: 0.03, brush: 0, swing: 0.14 },
+      melody: { inst: 'rhodes', grid: 0.5, base: 4, shifts: [-1, 0, 0, 1], dur: 2.2, vol: 0.06, skip: 0.4, restChord: 0.3, vary: 0.5, echo: 0, echoBeats: 1,
+        motif: [null, null, 0, null, null, null, 2, null, null, null, null, 1, null, null, null, null] },
+    },
   ],
 };
 

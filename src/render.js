@@ -279,12 +279,10 @@ export function render(ctx, w, h, st, now) {
   if (shakeT >= 0 && shakeT < 1) sx = Math.sin(shakeT * Math.PI * 6) * ANIM.shakePx * (1 - shakeT);
 
   ctx.save();
-  // приближенное поле не залезает под HUD
-  if (L.zoom > 1) {
-    ctx.beginPath();
-    ctx.rect(0, L.top, w, L.bottom - L.top);
-    ctx.clip();
-  }
+  // приближенное или сдвинутое поле не залезает под HUD
+  ctx.beginPath();
+  ctx.rect(0, L.top, w, L.bottom - L.top);
+  ctx.clip();
   ctx.translate(sx, 0);
 
   // силуэт поля и точки клеток — неподвижны, рисуются один раз в отдельный холст

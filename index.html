@@ -22,8 +22,7 @@
     </div>
     <div class="hud-right">
       <div class="hearts" id="hearts" data-i18n-aria="lives" aria-label="Жизни"></div>
-      <button class="icon-btn" id="music" aria-label="Выключить музыку">🎵</button>
-      <button class="icon-btn" id="sound" aria-label="Выключить звук">🔊</button>
+      <button class="icon-btn" id="sound" data-i18n-aria="mixer" aria-label="Громкость">🔊</button>
       <button class="icon-btn" id="to-menu" data-i18n-aria="menu" aria-label="Меню">☰</button>
     </div>
   </header>
@@ -38,6 +37,13 @@
     <button class="boost" id="b-life" data-i18n-aria="bLife"><svg viewBox="0 0 24 24"><path d="M12 20.5 C5 15.5 2.5 12 2.5 8.6 C2.5 6 4.5 4 7 4 C9 4 10.6 5.2 12 7 C13.4 5.2 15 4 17 4 C19.5 4 21.5 6 21.5 8.6 C21.5 12 19 15.5 12 20.5 Z" fill="#FF7A59"/><path d="M12 9 V15 M9 12 H15" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg><span class="boost-label" data-i18n="bLife"></span><span class="badge" id="c-life">0</span></button>
     <button class="boost boost-ghost" id="restart" data-i18n-aria="restart"><svg viewBox="0 0 24 24"><path d="M19.5 12 A7.5 7.5 0 1 1 17.3 6.7" fill="none" stroke="#2E2A24" stroke-width="2.8" stroke-linecap="round"/><path d="M18.5 3 V7.5 H14" fill="none" stroke="#2E2A24" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="boost-label" data-i18n="restart"></span></button>
   </footer>
+  <!-- микшер: громкость музыки и звуков -->
+  <div class="mixer" id="mixer" hidden>
+    <div class="mixer-title" data-i18n="mixer">Громкость</div>
+    <label class="mixer-row"><span class="mixer-ico">🎵</span><span class="mixer-name" data-i18n="mixMusic">Музыка</span><input type="range" id="vol-music" min="0" max="100" step="1" /></label>
+    <label class="mixer-row"><span class="mixer-ico">🔔</span><span class="mixer-name" data-i18n="mixSfx">Звуки</span><input type="range" id="vol-sfx" min="0" max="100" step="1" /></label>
+  </div>
+
   <!-- подсказка о бустерах: один раз, над панелью -->
   <div class="coach" id="coach" hidden>
     <div class="coach-title" data-i18n="coachTitle">Помощники</div>
