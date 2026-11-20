@@ -44,7 +44,7 @@ function load(key, fallback) {
   }
 }
 function save(key, value) {
-  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key)) return;
+  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key || key === BOOSTERS.coachKey)) return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
@@ -78,6 +78,19 @@ const todayKey = () => {
 let dailyDate = load(DAILY.key, null)?.date || '';
 const dailyDoneToday = () => dailyDate === todayKey();
 const startDaily = () => startLevel(dailyLevel(dayIndex(new Date())), true);
+
+// подсказка о бустерах: один раз, когда игрок дошёл до BOOSTERS.coachFrom (в админке не мешает прогону)
+let coachSeen = IS_ADMIN || load(BOOSTERS.coachKey, false) === true;
+function showCoach(on) {
+  $('coach').hidden = !on;
+  document.body.classList.toggle('coaching', on);
+}
+function closeCoach() {
+  if ($('coach').hidden) return;
+  showCoach(false);
+  coachSeen = true;
+  save(BOOSTERS.coachKey, true);
+}
 
 // ---------- уровень ----------
 // daily — ежедневный уровень: прогресс и звёзды не меняет, своя награда
@@ -118,6 +131,7 @@ function startLevel(n, daily = false) {
   $('toast').hidden = true;
   $('tutorial').textContent = st.tutorial;
   $('tutorial').hidden = !st.tutorial;
+  showCoach(!coachSeen && n >= BOOSTERS.coachFrom);
   updateHud();
 }
 
@@ -245,6 +259,7 @@ function useHint() {
 
 function win() {
   st.over = true;
+  showCoach(false); // не мешает финалу; не видели до конца — покажется на следующем уровне
   setMode(null);
   const stars = Math.max(1, Math.min(3, st.lives));
   let prev = 0;
@@ -479,6 +494,13 @@ $('open-levels').addEventListener('click', () => {
   sfx.click();
   showLevels();
 });
+$('coach-ok').addEventListener('click', () => {
+  sfx.click();
+  closeCoach();
+});
+document.querySelector('.hud-bottom').addEventListener('click', (e) => {
+  if (e.target.closest('.boost:not(.boost-ghost)')) closeCoach(); // «Заново» не считается
+}, true);
 $('open-daily').addEventListener('click', () => {
   unlock();
   sfx.click();
