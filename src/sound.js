@@ -212,47 +212,43 @@ export function createEngine(c, rand = Math.random) {
 
   const now = () => c.currentTime + 0.01;
   let sfxOn = true;
-  let lastFly = -1;
-
-  function whoosh(t, dur, vol) {
-    const n = noise(t, dur + 0.05);
-    const bp = c.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.Q.value = 1.1;
-    bp.frequency.setValueAtTime(500, t);
-    bp.frequency.exponentialRampToValueAtTime(3600, t + dur);
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(vol, t + dur * 0.35);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    n.connect(bp).connect(g).connect(sfxBus);
-  }
 
   const sfx = {
-    // выпуск: «вжух» + короткий блинк тембром текущей темы; вариант не повторяется подряд;
-    // с combo нота растёт по ступеням, после sparkleCombo добавляется блёстка
+    // правильный тап: очень короткий мягкий «поп» (шум + тон в середине), сухой, без мелодии;
+    // combo едва поднимает высоту (до comboSemis полутонов), len чуть удлиняет
     fly(combo = 0, len = 1) {
       if (!sfxOn) return;
-      const F = theme().fly ?? SOUND.flyFallback;
       const t = now();
-      const step = SOUND.flyBase + Math.max(0, Math.min(combo, SOUND.comboMax));
-      const j = () => 0.85 + rand() * 0.15; // лёгкая вариация громкости
-      let vi;
-      do vi = Math.floor(rand() * F.variants.length);
-      while (vi === lastFly && F.variants.length > 1);
-      lastFly = vi;
-      if (F.whoosh > 0) {
-        const dur = SOUND.whooshDur + SOUND.whooshPerLen * Math.min(Math.max(len - 1, 0), 8);
-        whoosh(t, dur, SOUND.whooshVol * F.whoosh * j());
-      }
-      const cut = 2800 + rand() * 2200;
-      const v = SOUND.flyVol * F.vol * j();
-      F.variants[vi].forEach((iv, i) => {
-        INST[F.inst](sfxBus, { f: sfxHz(step + iv), t: t + i * F.gap * (0.85 + rand() * 0.3), dur: F.dur * (1 + 0.2 * i), vol: v * Math.pow(0.85, i), cut });
-      });
-      if (combo >= SOUND.sparkleCombo) {
-        pluck(sfxBus, { f: sfxHz(step + 7), t: t + 0.16, dur: 0.8, vol: v * 0.3, parts: BELL, cut: 4000 });
-      }
+      const k = Math.min(Math.max(combo, 0), SOUND.comboMax) / SOUND.comboMax;
+      const semi = Math.pow(2, (k * SOUND.comboSemis) / 12);
+      const dur = SOUND.popDur * (1 + 0.2 * Math.min(Math.max(len - 1, 0), 6) / 6);
+      const f = SOUND.popFreq * semi * (0.96 + rand() * 0.08);
+      const vol = SOUND.flyVol * (0.9 + rand() * 0.2);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = SOUND.popCut;
+      lp.connect(sfxDry);
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f * 1.35, t);
+      o.frequency.exponentialRampToValueAtTime(f, t + dur * 0.5);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(lp);
+      o.start(t);
+      o.stop(t + dur + 0.03);
+      const n = noise(t, dur);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = f * 2;
+      bp.Q.value = 1;
+      const ng = c.createGain();
+      ng.gain.setValueAtTime(0.0001, t);
+      ng.gain.linearRampToValueAtTime(vol * 0.5, t + 0.003);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.6);
+      n.connect(bp).connect(ng).connect(lp);
     },
     bump() {
       if (!sfxOn) return;
@@ -272,10 +268,25 @@ export function createEngine(c, rand = Math.random) {
     },
     hint() {
       if (!sfxOn) return;
+      // «нашлось»: тихое стеклянное «динь» с лёгким свипом вверх и плавной атакой
       const t = now();
-      // мягко и приглушённо (звучит и при закрытии окон): две марим-ноты через сильный low-pass
-      pluck(sfxBus, { f: sfxHz(7), t, dur: 0.4, vol: SOUND.hintVol * 0.6, parts: MARIMBA, cut: 1500, attack: 0.012 });
-      pluck(sfxBus, { f: sfxHz(9), t: t + 0.1, dur: 0.5, vol: SOUND.hintVol * 0.5, parts: MARIMBA, cut: 1500, attack: 0.012 });
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = 4500;
+      lp.connect(sfxBus);
+      for (const [r, a, d] of [[1, 1, 0.34], [2.01, 0.3, 0.2]]) {
+        const o = c.createOscillator();
+        const g = c.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(900 * r, t);
+        o.frequency.exponentialRampToValueAtTime(1180 * r, t + 0.09);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(SOUND.hintVol * a, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + d + 0.04);
+        o.connect(g).connect(lp);
+        o.start(t);
+        o.stop(t + d + 0.1);
+      }
     },
     win() {
       if (!sfxOn) return;

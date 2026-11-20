@@ -46,18 +46,17 @@ export const SOUND = {
   flyBase: 5, // ступень пентатоники для combo = 0 (5 = C5)
   flyDur: 0.42, // длина «плинка», с (+ flyDurPerLen за клетку)
   flyDurPerLen: 0.03,
-  flyVol: 0.32,
-  whooshDur: 0.18, // «вжух» при вылете, с (+ whooshPerLen за клетку длины)
-  whooshPerLen: 0.03,
-  whooshVol: 0.2,
-  sparkleCombo: 6, // с какого combo добавляется блёстка
+  flyVol: 0.55, // пик тапа ~0.13
+  popDur: 0.09, // длина «попа», с
+  popFreq: 330, // тон «попа», Гц
+  popCut: 2500, // low-pass тапа
+  comboSemis: 1.5, // на сколько полутонов максимум поднимает combo
   bumpVol: 1.0,
-  hintVol: 0.4,
+  hintVol: 0.32,
   winVol: 0.38,
   starVol: 0.45,
   loseVol: 0.4,
   clickVol: 0.65, // тихий нейтральный тик кнопок (шум)
-  flyFallback: { inst: 'kalimba', variants: [[0, 2]], gap: 0.075, dur: 0.4, vol: 1, whoosh: 1 },
   clickFreq: 1400, // центр полосы тика, Гц
   winGap: 0.09, // пауза между нотами арпеджио, с
 };
@@ -87,7 +86,6 @@ export const MUSIC = {
       root: 60, penta: [0, 2, 4, 7, 9], scale: [0, 2, 4, 7, 9],
       bpm: 50, chordBeats: 8, order: 'random', vol: 0.9,
       chords: [[-24, -8, -5, -1, 2], [-27, -12, -8, -5, -1], [-19, -12, -8, -5, -3], [-17, -10, -8, -3, -1]],
-      fly: { inst: 'kalimba', variants: [[0, 2], [0, 3], [0, 1, 3]], gap: 0.075, dur: 0.4, vol: 1, whoosh: 1 },
       pad: { type: 'triangle', vol: 0.05, bass: 0.06, cutoff: [380, 800], attack: 2.2, release: 2.6 },
       melody: { inst: 'kalimba', grid: 1, base: 2, shifts: [-1, 0, 0, 1], dur: 2.4, vol: 0.12, skip: 0.3, restChord: 0.3, vary: 0.5, cut: 1800, attack: 0.03, echo: 0, echoBeats: 1.5,
         motif: [0, null, 2, null, null, 1, null, null, 3, null, null, null, 2, null, null, null] },
@@ -97,7 +95,6 @@ export const MUSIC = {
       root: 62, penta: [0, 3, 5, 7, 10], scale: [0, 2, 3, 5, 7, 9, 10],
       bpm: 48, chordBeats: 8, order: 'random', vol: 0.6,
       chords: [[-24, -9, -5, -2, 2], [-19, -12, -3, 0, 2], [-26, -10, -7, -3, 0], [-17, -14, -10, -7, -3]],
-      fly: { inst: 'flute', variants: [[0], [0, 2], [0, 1]], gap: 0.1, dur: 0.55, vol: 0.6, whoosh: 0.9 },
       pad: { type: 'sine', vol: 0.055, bass: 0.06, cutoff: [340, 700], attack: 2.4, release: 2.6 },
       melody: { inst: 'flute', grid: 2, base: 3, shifts: [-1, 0, 0, 1], dur: 4.5, vol: 0.12, skip: 0.25, restChord: 0.25, vary: 0.5, echo: 0, echoBeats: 2,
         motif: [0, null, 2, null, 3, null, null, null, 1, null, null, null] },
@@ -107,7 +104,6 @@ export const MUSIC = {
       root: 65, penta: [0, 2, 4, 6, 9], scale: [0, 2, 4, 6, 7, 9, 11],
       bpm: 48, chordBeats: 8, order: 'random', vol: 1.05,
       chords: [[-24, -17, -13, -8, -6], [-22, -15, -10, -8, -6], [-27, -15, -12, -8, -5], [-20, -13, -10, -5, -1]],
-      fly: { inst: 'harp', variants: [[0, 2, 4], [0, 2], [0, 1, 3]], gap: 0.06, dur: 0.6, vol: 0.8, whoosh: 0.7 },
       pad: { type: 'triangle', vol: 0.04, bass: 0.055, cutoff: [360, 760], attack: 2.4, release: 2.6 },
       melody: { inst: 'harp', grid: 1, base: 3, shifts: [-2, -1, 0, 0, 1], dur: 3, vol: 0.1, skip: 0.45, restChord: 0.3, vary: 0.5, cut: 1600, attack: 0.03, echo: 0.3, echoBeats: 1.5,
         motif: [0, null, 3, null, null, 5, null, null, 2, null, null, null, null] },
@@ -117,7 +113,6 @@ export const MUSIC = {
       root: 57, penta: [0, 3, 5, 7, 10], scale: [0, 2, 3, 5, 7, 8, 10],
       bpm: 40, chordBeats: 8, order: 'cycle', vol: 0.65,
       chords: [[-24, -5, -2, 2, 3], [-16, -9, 0, 3, 7], [-19, -7, -4, 0, 3], [-17, -5, -2, 2, 5]],
-      fly: { inst: 'bell', variants: [[0, 2], [0, 3], [0]], gap: 0.09, dur: 0.8, vol: 0.8, whoosh: 0.5 },
       pad: { type: 'triangle', vol: 0.06, bass: 0.06, cutoff: [300, 600], attack: 2.8, release: 3.2 },
       melody: { inst: 'bell', grid: 2, base: 4, shifts: [-1, 0, 0, 1], dur: 4, vol: 0.08, skip: 0.5, restChord: 0.4, vary: 0.5, cut: 1300, attack: 0.06, echo: 0.25, echoBeats: 2,
         motif: [0, null, null, 3, null, null, 1, null, null, null] },
@@ -127,7 +122,6 @@ export const MUSIC = {
       root: 58, penta: [0, 2, 4, 7, 9], scale: [0, 2, 4, 7, 9],
       bpm: 66, chordBeats: 16, order: 'cycle', vol: 1.5,
       chords: [[-12, -1, 4, 7, 14], [-15, -5, 0, 4, 11], [-10, 0, 4, 5, 9], [-17, -7, -1, 4]],
-      fly: { inst: 'rhodes', variants: [[0, 2], [0, 3], [0, 1]], gap: 0.08, dur: 0.5, vol: 0.9, whoosh: 0.6 },
       pad: { type: 'sine', vol: 0, bass: 0.07, cutoff: [500, 500], attack: 0.4, release: 1.2 },
       hits: { vol: 0.06, slots: [0, 5] },
       drums: { kick: 0.16, hat: 0.03, brush: 0, swing: 0.14 },
