@@ -23,6 +23,9 @@ const T = {
     back: 'Назад',
     album: 'Альбом',
     themeLight: 'Тема: светлая',
+    cbSwitch: 'Режим для дальтоников',
+    cbOn: 'Режим для дальтоников: линии с узорами',
+    cbOff: 'Режим для дальтоников выключен',
     themeNeon: 'Тема: неон',
     themeSwitch: 'нажми, чтобы сменить',
     themeLocked: (n) => `🔒 неон — за ${n} ★`,
@@ -90,6 +93,9 @@ const T = {
     back: 'Back',
     album: 'Album',
     themeLight: 'Theme: light',
+    cbSwitch: 'Colour-blind mode',
+    cbOn: 'Colour-blind mode: patterned lines',
+    cbOff: 'Colour-blind mode off',
     themeNeon: 'Theme: neon',
     themeSwitch: 'tap to switch',
     themeLocked: (n) => `🔒 neon — for ${n} ★`,
@@ -211,5 +217,8 @@ export function applyStatic(root = document) {
   });
   root.querySelectorAll('[data-i18n-aria]').forEach((el) => {
     el.setAttribute('aria-label', t(el.dataset.i18nAria));
+  });
+  root.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    el.title = t(el.dataset.i18nTitle);
   });
 }

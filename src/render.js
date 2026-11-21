@@ -1,6 +1,6 @@
 // Отрисовка поля на Canvas. Только рисует: состояние не меняет.
 // Змейка — одна линия по центрам клеток со скруглёнными изгибами и наконечником на голове.
-import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS, STONES, LOCKS } from './config.js';
+import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS, STONES, LOCKS, COLORBLIND } from './config.js';
 import { DIRS, cellXY, trajectory, windowAt, isLocked } from './level.js';
 import { shapeAspect, shapeMask } from './shapes.js';
 
@@ -127,7 +127,11 @@ function drawSnake(ctx, L, pts, dir, color, width, alpha) {
   }
   ctx.globalAlpha = alpha;
   ctx.lineWidth = width;
+  // режим для дальтоников: свой узор у каждого цвета (наконечник всегда сплошной)
+  const dash = COLORS.patterns ? COLORBLIND.dash[COLORS.snake.indexOf(color)] : null;
+  if (dash && dash.length) ctx.setLineDash(dash.map((d) => d * width));
   if (body) ctx.stroke(body);
+  if (dash && dash.length) ctx.setLineDash([]);
   ctx.lineWidth = width * 0.35;
   ctx.fill(head);
   ctx.stroke(head);
@@ -284,7 +288,7 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
   const cw = Math.ceil((w + m * 2) * dpr);
   const ch = Math.ceil(h * dpr);
   if (!(cw >= 1 && ch >= 1)) return null;
-  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${live.map((p) => p.id).join(',')}`;
+  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${COLORS.patterns}|${live.map((p) => p.id).join(',')}`;
   let c = layers.get(ctx);
   if (c && c.key === key && c.list === st.list) return c.canvas;
   if (!c || c.canvas.width !== cw || c.canvas.height !== ch) {

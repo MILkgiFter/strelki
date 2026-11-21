@@ -368,3 +368,7 @@ html[data-theme="neon"] .toast { background: #ECEAF6; color: #14151F; }
 html[data-theme="neon"] .word span { text-shadow: 0 0 12px currentColor; }
 html[data-theme="neon"] .tile { border-color: #14151F; box-shadow: 0 0 14px rgba(255,255,255,.18); }
 html[data-theme="neon"] #restart svg path { stroke: #ECEAF6; }
+
+/* режим для дальтоников (п. 10.4): кнопка 👁 слева вверху меню, включённая — с рамкой */
+.cb-btn { right: auto; left: calc(16px + var(--safe-l)); }
+html.cb .cb-btn { outline: 3px solid #FFB020; }

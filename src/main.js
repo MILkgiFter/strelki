@@ -1,5 +1,5 @@
 // Состояние игры, ввод и экраны.
-import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY, THEMES, THEME } from './config.js';
+import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY, THEMES, THEME, COLORBLIND } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
@@ -65,9 +65,13 @@ const totalStars = () => Object.values(bestStars).reduce((s, v) => s + (Number(v
 // ---------- тема оформления ----------
 const neonOpen = () => IS_ADMIN || totalStars() >= THEME.neonStars;
 let theme = load(THEME.key, 'light') === 'neon' && neonOpen() ? 'neon' : 'light';
+let colorblind = load(COLORBLIND.key, false) === true;
 function applyTheme(name) {
   theme = name;
-  Object.assign(COLORS, THEMES[name]);
+  Object.assign(COLORS, THEMES[name], { snake: [...THEMES[name].snake] });
+  COLORS.patterns = colorblind;
+  if (colorblind && name === 'light') COLORS.snake = [...COLORBLIND.palette];
+  document.documentElement.classList.toggle('cb', colorblind);
   document.documentElement.dataset.theme = name;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS.bg);
 }
@@ -406,6 +410,15 @@ $('theme-btn').addEventListener('click', () => {
   applyTheme(theme === 'neon' ? 'light' : 'neon');
   save(THEME.key, theme);
   updateThemeButton();
+});
+
+$('cb').addEventListener('click', () => {
+  unlock();
+  sfx.click();
+  colorblind = !colorblind;
+  save(COLORBLIND.key, colorblind);
+  applyTheme(theme);
+  toast(t(colorblind ? 'cbOn' : 'cbOff'));
 });
 
 function toast(text) {
