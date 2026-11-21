@@ -288,7 +288,7 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
   const cw = Math.ceil((w + m * 2) * dpr);
   const ch = Math.ceil(h * dpr);
   if (!(cw >= 1 && ch >= 1)) return null;
-  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${COLORS.patterns}|${live.map((p) => p.id).join(',')}`;
+  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${COLORS.glow}|${COLORS.patterns}|${live.map((p) => p.id).join(',')}`;
   let c = layers.get(ctx);
   if (c && c.key === key && c.list === st.list) return c.canvas;
   if (!c || c.canvas.width !== cw || c.canvas.height !== ch) {

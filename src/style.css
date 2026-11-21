@@ -372,3 +372,4 @@ html[data-theme="neon"] #restart svg path { stroke: #ECEAF6; }
 /* режим для дальтоников (п. 10.4): кнопка 👁 слева вверху меню, включённая — с рамкой */
 .cb-btn { right: auto; left: calc(16px + var(--safe-l)); }
 html.cb .cb-btn { outline: 3px solid #FFB020; }
+html[data-theme="neon"] .star.on { color: #FFB020; text-shadow: 0 0 12px rgba(255,176,32,.5); }
