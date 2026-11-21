@@ -286,150 +286,69 @@ export function createEngine(c, rand = Math.random) {
     },
   };
 
-  // ---- варианты победы ----
-  // мягкий аккорд из трёх ступеней (основа для chord и glow)
-  function softChord(t, vol, dur, attack = 0.08, cut = 1800) {
-    const lp = c.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = cut;
-    lp.connect(sfxBus);
-    for (const n of [0, 2, 4]) {
+  // ---- варианты победы: «галочка / задача выполнена» ----
+  // чистое «динь»: синус + тихий обертон, быстрая атака, плавное затухание
+  function ding(t, f, vol, dur, { type = 'sine', partial = 2, pAmt = 0.15, glide = 0 } = {}) {
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    g.connect(sfxBus);
+    for (const [r, a] of [[1, 1], [partial, pAmt]]) {
       const o = c.createOscillator();
-      const g = c.createGain();
-      o.type = 'triangle';
-      o.frequency.value = sfxHz(n + 5);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(vol, t + attack);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g).connect(lp);
+      const og = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f * r * (glide ? 1 - glide : 1), t);
+      if (glide) o.frequency.exponentialRampToValueAtTime(f * r, t + 0.035);
+      og.gain.value = a;
+      o.connect(og).connect(g);
       o.start(t);
       o.stop(t + dur + 0.05);
     }
   }
-  // свуш вверх (шум, полоса скользит вверх) — основа вариаций победы
-  function whoosh(t, dur, vol, f0 = 500, f1 = 2600) {
+  // щелчок «поставил галочку»: короткий шум в узкой полосе
+  function tick(t, vol) {
     const bp = c.createBiquadFilter();
     bp.type = 'bandpass';
-    bp.Q.value = 1.1;
-    bp.frequency.setValueAtTime(f0, t);
-    bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    bp.connect(sfxBus);
-    const n = noise(t, dur + 0.05);
+    bp.frequency.value = 3000;
+    bp.Q.value = 2;
+    bp.connect(sfxDry);
+    const n = noise(t, 0.02);
     const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(vol, t + dur * 0.6);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
     n.connect(g).connect(bp);
   }
-  // россыпь колокольчиков по ступеням notes; последний звенит дольше
-  function sparks(t, notes, gap, dur, vol, cut = 3500) {
-    notes.forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * gap, dur: i === notes.length - 1 ? dur * 2 : dur, vol, parts: BELL, cut }));
-  }
+  const NOTE = { E5: 659.3, A5: 880, C6: 1046.5, E6: 1318.5, G6: 1568, B6: 1975.5 };
   const WINS = {
-    // --- вариации от ♥ (F, D, W) ---
-    swishSpark() { // свуш переходит в искры
-      const V = SOUND.winVar;
+    check() { // две ноты вверх (кварта)
+      const V = SOUND.winCheck.vol;
       const t = now();
-      whoosh(t, 0.3, V.swishVol);
-      sparks(t + 0.25, [7, 8, 9, 10, 12], 0.04, 0.45, V.sparkVol);
+      ding(t, NOTE.A5, V, 0.3);
+      ding(t + 0.09, NOTE.E6, V, 0.6);
     },
-    swishShort() { // короткий свуш + колокольчик выше
-      const V = SOUND.winVar;
+    tickDing() { // щелчок галочки + динь
+      const P = SOUND.winCheck;
       const t = now();
-      whoosh(t, 0.22, V.swishVol, 600, 3000);
-      pluck(sfxBus, { f: sfxHz(10), t: t + 0.19, dur: 1.1, vol: V.bellVol, parts: BELL, cut: 3200 });
+      tick(t, P.tickVol);
+      ding(t + 0.035, NOTE.E6, P.vol * P.mul.tickDing, 0.6);
     },
-    swishTwo() { // свуш + два колокольчика
-      const V = SOUND.winVar;
+    glass() { // одно стеклянное «динь»
+      ding(now(), NOTE.G6, SOUND.winCheck.vol * SOUND.winCheck.mul.glass, 0.75, { partial: 2.76, pAmt: 0.25 });
+    },
+    triple() { // три быстрые ноты вверх
+      const V = SOUND.winCheck.vol;
       const t = now();
-      whoosh(t, 0.3, V.swishVol);
-      [9, 12].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + 0.26 + i * 0.1, dur: 1, vol: V.bellVol * 0.85, parts: BELL, cut: 3200 }));
+      [NOTE.C6, NOTE.E6, NOTE.G6].forEach((f, i) => ding(t + i * 0.06, f, V * (i === 2 ? 1 : 0.8), i === 2 ? 0.6 : 0.2));
     },
-    sparkFast() { // искры быстрее и короче
-      sparks(now(), [5, 7, 9, 10, 12], 0.03, 0.4, SOUND.winVar.sparkVol);
-    },
-    sparkSoft() { // искры ниже и мягче
-      sparks(now(), [3, 4, 5, 6, 7, 9], 0.05, 0.5, SOUND.winVar.sparkSoftVol, 2800);
-    },
-    sparkUp() { // искры широкими шагами вверх
-      sparks(now(), [5, 7, 9, 12, 14], 0.06, 0.45, SOUND.winVar.sparkVol);
-    },
-    // хвост из трёх искр и свуш без колокольчика — для смесей с записью «взлёт» (W)
-    sparkTail(delay = 0) {
-      sparks(now() + delay, [9, 10, 12], 0.05, 0.45, SOUND.winVar.sparkVol);
-    },
-    whooshOnly() {
-      whoosh(now(), 0.3, SOUND.winVar.swishVol);
-    },
-    // россыпь искр: 7 тихих колокольчиков быстро вверх
-    sparkle() {
-      const P = SOUND.winSparkle;
+    soft() { // мягко, ниже, две ноты
+      const V = SOUND.winCheck.vol;
       const t = now();
-      [5, 6, 7, 8, 9, 10, 12].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * P.gap, dur: i === 6 ? P.dur * 2 : P.dur, vol: P.vol, parts: BELL, cut: 3500 }));
+      ding(t, NOTE.E5, V * 1.2, 0.35, { type: 'triangle', pAmt: 0.05 });
+      ding(t + 0.1, NOTE.A5, V * 1.2, 0.7, { type: 'triangle', pAmt: 0.05 });
     },
-    // маримба: тёплое деревянное «та-да-даа»
-    marimba() {
-      const P = SOUND.winMarimba;
-      const t = now();
-      [[4, 0], [5, 1], [7, 2.2]].forEach(([n, k], i) => pluck(sfxBus, { f: sfxHz(n), t: t + k * P.gap, dur: i === 2 ? P.dur * 1.6 : P.dur, vol: P.vol, parts: MARIMBA, cut: 2200 }));
-    },
-    // свуш вверх (как тап, только шире) и колокольчик в конце — в одном стиле с тапом
-    swish() {
-      const P = SOUND.winSwish;
-      const t = now();
-      const bp = c.createBiquadFilter();
-      bp.type = 'bandpass';
-      bp.Q.value = 1.1;
-      bp.frequency.setValueAtTime(500, t);
-      bp.frequency.exponentialRampToValueAtTime(2600, t + P.dur);
-      bp.connect(sfxBus);
-      const n = noise(t, P.dur + 0.05);
-      const g = c.createGain();
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(P.vol, t + P.dur * 0.6);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + P.dur + 0.05);
-      n.connect(g).connect(bp);
-      pluck(sfxBus, { f: sfxHz(9), t: t + P.dur * 0.85, dur: 1.2, vol: P.bellVol, parts: BELL, cut: 3200 });
-    },
-    // тёплый аккорд, над ним один колокольчик
-    glow() {
-      const P = SOUND.winGlow;
-      const t = now();
-      softChord(t, P.vol, P.dur);
-      pluck(sfxBus, { f: sfxHz(10), t: t + 0.12, dur: 1.3, vol: P.bellVol, parts: BELL, cut: 3200 });
-    },
-    // два колокольчика вверх (квинта): коротко и светло
-    chime() {
-      const P = SOUND.winChime;
-      const t = now();
-      [5, 9].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * P.gap, dur: P.dur, vol: P.vol, parts: BELL, cut: 3000 }));
-    },
-    // арфа: быстрый взлёт из 4 нот, последняя чуть дольше
-    harp() {
-      const P = SOUND.winHarp;
-      const t = now();
-      [3, 5, 7, 10].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * P.gap, dur: i === 3 ? P.dur * 1.4 : P.dur, vol: P.vol, parts: HARP, cut: 3200 }));
-    },
-    // мягкий аккорд: три ноты плавно вступают и гаснут — «выдох», без мелодии
-    chord() {
-      const P = SOUND.winChord;
-      const t = now();
-      const lp = c.createBiquadFilter();
-      lp.type = 'lowpass';
-      lp.frequency.value = P.cut;
-      lp.connect(sfxBus);
-      for (const n of [0, 2, 4]) {
-        const o = c.createOscillator();
-        const g = c.createGain();
-        o.type = 'triangle';
-        o.frequency.value = sfxHz(n + 5);
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.linearRampToValueAtTime(P.vol, t + P.attack);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + P.dur);
-        o.connect(g).connect(lp);
-        o.start(t);
-        o.stop(t + P.dur + 0.05);
-      }
+    pling() { // «динь» с коротким взлётом высоты
+      ding(now(), NOTE.E6, SOUND.winCheck.vol * SOUND.winCheck.mul.pling, 0.6, { glide: 0.12 });
     },
   };
 
@@ -832,7 +751,7 @@ export function createEngine(c, rand = Math.random) {
     stats: () => ({ pads: voices.reduce((s, v) => s + v.pads.size, 0), voices: voices.length, playing }),
   };
 
-  return { sfxDry, wins: WINS, sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
+  return { sfxDry, sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
 }
 
 // ---- модульный API (его зовёт main.js) ----
@@ -937,26 +856,9 @@ function playBuf(buf, style, delay = 0) {
   src.connect(g).connect(engine.sfxDry);
   src.start(ctx.currentTime + delay);
 }
-// смеси записи «взлёт» (up1) с синтезом
-const WIN_MIX = {
-  upSpark: () => withBuf('up1', (b) => {
-    playBuf(b, 'up1');
-    engine.wins.sparkTail(SOUND.winVar.tailDelay);
-  }),
-  swishUp: () => withBuf('up1', (b) => {
-    engine.wins.whooshOnly();
-    playBuf(b, 'up1', SOUND.winVar.upDelay);
-  }),
-};
-function withBuf(id, fn) {
-  if (winBufs[id]) return fn(winBufs[id]);
-  if (winLoads[id]) return winLoads[id].then((b) => (b ? fn(b) : engine.sfx.win()));
-  engine.sfx.win();
-}
 function playWin() {
   if (!sfxEnabled || !ac()) return;
   const style = getStyle('win');
-  if (WIN_MIX[style]) return WIN_MIX[style]();
   if (winBufs[style]) return playBuf(winBufs[style], style);
   // файл ещё грузится — сыграть, как только будет готов; не загрузился — синтез
   if (winLoads[style]) return winLoads[style].then((buf) => (buf ? playBuf(buf, style) : engine.sfx.win()));

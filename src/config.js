@@ -54,44 +54,16 @@ export const SOUND = {
   // верный тап: стиль и варианты на выбор (п. звук; сравнение в пульте 🎧 админки)
   // выбранные варианты звуков (сравнение в пульте 🎧 админки):
   // fly: pop — было, bubble — пузырёк, wood — деревяшка, swoosh — свуш (выбран игроком 2026-11-21)
-  // win: arp — было, chime — два колокольчика, harp — арфа вверх, chord — мягкий аккорд,
-  //      sparkle — россыпь искр, marimba — маримба «та-да-даа», swish — свуш + колокольчик, glow — аккорд + колокольчик
-  styles: { fly: 'swoosh', win: 'arp' },
-  winChime: { vol: 0.3, dur: 1.1, gap: 0.16 },
-  winHarp: { vol: 0.26, gap: 0.07, dur: 0.9 },
-  winChord: { vol: 0.25, attack: 0.08, dur: 1.4, cut: 1800 },
-  winSparkle: { vol: 0.26, gap: 0.045, dur: 0.5 },
-  winMarimba: { vol: 0.34, gap: 0.12, dur: 0.7 },
-  winSwish: { vol: 0.45, dur: 0.35, bellVol: 0.3 },
-  winGlow: { vol: 0.14, bellVol: 0.26, dur: 1.5 },
-  // вариации вокруг понравившихся F (свуш + колокольчик), D (искры), W (запись «взлёт»)
-  winVar: { sparkVol: 0.26, sparkSoftVol: 0.3, swishVol: 0.45, bellVol: 0.3, tailDelay: 0.18, upDelay: 0.22 },
-  // записанные джинглы победы (Kenney Music Jingles, CC0; assets/CREDITS.md) — варианты для сравнения
+  // win: arp — было; варианты «галочка / задача выполнена» (сравнение в пульте 🎧):
+  //      check — две ноты вверх, tickDing — щелчок + динь, glass — стеклянное динь, triple — три ноты вверх,
+  //      soft — мягко две ноты, pling — динь со взлётом; ding1/ding2 — записанные «динь» (Kenney)
+  winCheck: { vol: 0.42, tickVol: 0.5, mul: { tickDing: 1.3, glass: 1.6, pling: 1.8 } }, // громкость выровнена замером
+  // записанные «динь» (Kenney Interface Sounds, CC0; assets/CREDITS.md)
   winFiles: {
-    sax1: 'sounds/win-sax1.mp3', // саксофон, взлёт гаммой (SAX02)
-    sax2: 'sounds/win-sax2.mp3', // саксофон, короткий (SAX10)
-    steel1: 'sounds/win-steel1.mp3', // стил-драм, короткий (STEEL10)
-    steel2: 'sounds/win-steel2.mp3', // стил-драм, длиннее (STEEL02)
-    pizz: 'sounds/win-pizz.mp3', // струнные щипком (PIZZI02)
-    ok1: 'sounds/win-ok1.mp3', // «готово», мягкое вверх (Interface Sounds confirmation_002)
-    ok2: 'sounds/win-ok2.mp3', // «готово», коротко (confirmation_003)
-    ok3: 'sounds/win-ok3.mp3', // двухнотное вверх (question_003)
-    ok4: 'sounds/win-ok4.mp3', // ровный приятный «динь-дон» (confirmation_004)
-    bit1: 'sounds/win-8bit1.mp3', // 8-бит, коротко вверх (NES09)
-    bit2: 'sounds/win-8bit2.mp3', // 8-бит, длиннее (NES12)
-    sax3: 'sounds/win-sax3.mp3', // саксофон, перелив вверх (SAX15)
-    sax4: 'sounds/win-sax4.mp3', // саксофон, две ноты (SAX16)
-    steel3: 'sounds/win-steel3.mp3', // стил-драм, взлёт с повтором (STEEL15)
-    bit3: 'sounds/win-8bit3.mp3', // 8-бит, мелодия вверх (NES05)
-    up1: 'sounds/win-up1.mp3', // короткий «взлёт» (Interface Sounds maximize_009)
-    up2: 'sounds/win-up2.mp3', // короткий «взлёт», выше (maximize_007)
-    tri: 'sounds/win-tri.mp3', // три тона вверх (Digital Audio threeTone2)
-    high: 'sounds/win-high.mp3', // чистый «взлёт» (Digital Audio highUp)
-    pow1: 'sounds/win-pow1.mp3', // «пауэр-ап» (Digital Audio powerUp7)
-    pow2: 'sounds/win-pow2.mp3', // «пауэр-ап», другой (powerUp8)
-    phase: 'sounds/win-phase.mp3', // мягкий фазер вверх (phaserUp3)
+    ding1: 'sounds/win-ding1.mp3', // glass_003
+    ding2: 'sounds/win-ding2.mp3', // glass_002
   },
-  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43, ok1: 0.38, ok2: 0.42, ok3: 0.3, ok4: 0.3, bit1: 0.52, bit2: 0.52, sax3: 0.86, sax4: 0.87, steel3: 0.41, bit3: 0.5, up1: 0.4, up2: 0.47, tri: 0.4, high: 0.28, pow1: 0.51, pow2: 0.5, phase: 0.66 }, // выровнено замером ≈ −15.5 дБ, как синтез
+  winFileVol: { ding1: 0.74, ding2: 1 },
   tapBubble: { vol: 0.26, f: 520, up: 1.7, dur: 0.07, cut: 2600 },
   tapWood: { vol: 0.32, f: 1100, q: 9, dur: 0.045 },
   tapSwoosh: { vol: 0.38, f0: 700, f1: 2200, dur: 0.14, q: 1.2 },
