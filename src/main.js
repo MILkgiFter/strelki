@@ -3,7 +3,7 @@ import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLAS
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
-import { generate, findFree, probePiece, removePiece, pieces, isPiece, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
+import { generate, findFree, probePiece, removePiece, pieces, isPiece, isLocked, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
 const IS_ADMIN = new URLSearchParams(location.search).has('admin');
@@ -220,8 +220,11 @@ function tap(piece) {
   if (st.over || !piece || st.bumps.has(piece.id)) return;
   st.touched = true;
   const now = performance.now();
-  const p = probePiece(st.grid, st.w, st.h, piece);
+  const locked = isLocked(st.grid, piece);
+  const p = locked ? { blocked: true, free: 0 } : probePiece(st.grid, st.w, st.h, piece);
   st.pops.set(piece.id, now);
+  // замок закрыт: стрелка дёргается на месте, ключ того же цвета подсвечивается
+  if (locked) st.hint = { id: piece.lock.id, t0: now, key: true };
 
   if (!p.blocked) {
     removePiece(st.grid, piece);

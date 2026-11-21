@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generate, solve, params, analyze, pieces, STONE, isPiece, DIRS, cellXY, trajectory, windowAt, dayIndex, dailyLevel } from '../src/level.js';
+import { generate, solve, params, analyze, pieces, STONE, isPiece, isLocked, isFree, removePiece, DIRS, cellXY, trajectory, windowAt, dayIndex, dailyLevel } from '../src/level.js';
 const inside = (mask) => mask.reduce((t, v) => t + v, 0);
 
 const bent = (p, w) => new Set(p.cells.map((c) => c % w)).size > 1 && new Set(p.cells.map((c) => Math.floor(c / w))).size > 1;
@@ -41,6 +41,26 @@ describe('уровни', () => {
       const g = grid.slice();
       expect(solve(g, w, h).solved).toBe(true);
       expect(grid.filter((v) => v && !isPiece(v)).length).toBe(stones.length);
+    }
+  });
+
+  it('замки: нет до 30-го уровня, с 30-го есть; ключ того же цвета, замок закрыт, пока ключ на поле', () => {
+    for (let n = 1; n < 30; n++) expect(pieces(generate(n).grid).some((p) => p.lock), `уровень ${n}`).toBe(false);
+    for (let n = 30; n <= 90; n++) {
+      const { grid, w, h } = generate(n);
+      const locks = pieces(grid).filter((p) => p.lock);
+      expect(locks.length, `уровень ${n}`).toBeGreaterThanOrEqual(1);
+      for (const L of locks) {
+        expect(L.color).toBe(L.lock.color);
+        expect(L.lock.key).toBe(true);
+        expect(L.lock.lock).toBeUndefined();
+        expect(isLocked(grid, L)).toBe(true);
+        expect(isFree(grid, w, h, L)).toBe(false);
+        const g = grid.slice();
+        removePiece(g, L.lock);
+        expect(isLocked(g, L)).toBe(false);
+      }
+      expect(solve(grid, w, h).solved, `уровень ${n}`).toBe(true);
     }
   });
 

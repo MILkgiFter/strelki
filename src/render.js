@@ -1,7 +1,7 @@
 // Отрисовка поля на Canvas. Только рисует: состояние не меняет.
 // Змейка — одна линия по центрам клеток со скруглёнными изгибами и наконечником на голове.
-import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS, STONES } from './config.js';
-import { DIRS, cellXY, trajectory, windowAt } from './level.js';
+import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS, STONES, LOCKS } from './config.js';
+import { DIRS, cellXY, trajectory, windowAt, isLocked } from './level.js';
 import { shapeAspect, shapeMask } from './shapes.js';
 
 // отступы безопасной зоны экрана (вырез iPhone) в px; main.js обновляет при resize
@@ -119,6 +119,46 @@ function drawSnake(ctx, L, pts, dir, color, width, alpha) {
   ctx.lineWidth = width * 0.35;
   ctx.fill();
   ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+// Значок на середине змейки: замок (пока ключ на поле) или ключ. grid = null — змейка уже ушла с поля
+function drawBadge(ctx, L, pts, p, grid, color, alpha) {
+  const kind = p.key ? 'key' : p.lock && grid && isLocked(grid, p) ? 'lock' : null;
+  if (!kind || alpha <= 0 || !pts.length) return;
+  const { cell } = L;
+  const [mx, my] = pts[Math.floor((pts.length - 1) / 2)];
+  const X = L.x + (mx + 0.5) * cell;
+  const Y = L.y + (my + 0.5) * cell;
+  const r = cell * LOCKS.badge;
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = COLORS.bg;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1, cell * LOCKS.badgeLine);
+  ctx.beginPath();
+  ctx.arc(X, Y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(1, r * 0.22);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (kind === 'lock') {
+    // дужка и корпус
+    ctx.arc(X, Y - r * 0.12, r * 0.3, Math.PI, 0);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.roundRect(X - r * 0.45, Y - r * 0.12, r * 0.9, r * 0.62, r * 0.12);
+    ctx.fill();
+  } else {
+    // кольцо, стержень, бородка
+    ctx.arc(X - r * 0.28, Y, r * 0.24, 0, Math.PI * 2);
+    ctx.moveTo(X - r * 0.04, Y);
+    ctx.lineTo(X + r * 0.55, Y);
+    ctx.moveTo(X + r * 0.4, Y);
+    ctx.lineTo(X + r * 0.4, Y + r * 0.26);
+    ctx.stroke();
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -254,7 +294,9 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
     // за краем экрана (с запасом в клетку на наконечник и толщину) — не рисуем
     if (L.x + (x1 + 2) * cell < -m || L.x + (x0 - 1) * cell > w + m) continue;
     if (L.y + (y1 + 2) * cell < 0 || L.y + (y0 - 1) * cell > h) continue;
-    drawSnake(g, L, bodyPts(p, st.w), p.dir, COLORS.snake[p.color], lw, 1);
+    const pts = bodyPts(p, st.w);
+    drawSnake(g, L, pts, p.dir, COLORS.snake[p.color], lw, 1);
+    drawBadge(g, L, pts, p, st.grid, COLORS.snake[p.color], 1);
   }
   c.key = key;
   c.list = st.list;
@@ -370,10 +412,11 @@ export function render(ctx, w, h, st, now) {
     if (isHint) {
       const pulse = 0.5 + 0.5 * Math.sin(((now - st.hint.t0) / ANIM.hintPulseMs) * Math.PI * 2);
       width *= 1 + (SNAKE.hintScale - 1) * pulse * dimK;
-      s += ANIM.hintNudge * pulse * dimK; // «кивок» туда, куда змейка уедет
+      if (!st.hint.key) s += ANIM.hintNudge * pulse * dimK; // «кивок» туда, куда змейка уедет (ключ просто пульсирует)
     }
     const pts = s > 0 ? windowAt(trajectory(p, st.w, s + 1), s, p.len) : bodyPts(p, st.w);
     drawSnake(ctx, L, pts, p.dir, COLORS.snake[p.color], width, alpha);
+    drawBadge(ctx, L, pts, p, st.grid, COLORS.snake[p.color], alpha);
   }
 
   // стёртые ластиком: тают на месте — тоньше и прозрачнее
@@ -390,7 +433,9 @@ export function render(ctx, w, h, st, now) {
     const s = ((now - f.t0) / 1000) * f.speed;
     const alpha = Math.max(0, 1 - Math.max(0, s - f.toEdge) / ANIM.flyFadeCells);
     if (alpha <= 0) continue;
-    drawSnake(ctx, L, windowAt(trajectory(p, st.w, s + 1), s, p.len), p.dir, color, lw, alpha);
+    const fp = windowAt(trajectory(p, st.w, s + 1), s, p.len);
+    drawSnake(ctx, L, fp, p.dir, color, lw, alpha);
+    drawBadge(ctx, L, fp, p, null, color, alpha);
   }
 
   ctx.restore();

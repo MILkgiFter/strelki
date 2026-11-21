@@ -5,7 +5,8 @@
 // cells[0] — голова (нос), дальше тело к хвосту по соседним клеткам (может изгибаться).
 // Инварианты: cells[1] = голова − dir (последний отрезок смотрит туда же, куда нос);
 // ни одна своя клетка не лежит на луче головы — поэтому тело никогда не мешает себе.
-import { DIFFICULTY, GEN_JITTER, RHYTHM, DAILY, STONES } from './config.js';
+// Замок: p.lock — змейка-ключ (у неё key: true); замок выпускается, только когда ключа на поле нет.
+import { DIFFICULTY, GEN_JITTER, RHYTHM, DAILY, STONES, LOCKS } from './config.js';
 import { SHAPES, RECT, shapeMask, shapeAspect, shapeFill } from './shapes.js';
 import { LANDMARKS } from './landmarks.js';
 import { OBJECTS } from './shapes-objects.js';
@@ -147,7 +148,9 @@ export const pieces = (grid) => [...new Set(grid.filter(isPiece))];
 export const cellXY = (c, w) => [c % w, Math.floor(c / w)];
 export const headXY = (p, w) => cellXY(p.head, w);
 export const probePiece = (grid, w, h, p) => probe(grid, w, h, ...headXY(p, w), p.dir);
-export const isFree = (grid, w, h, p) => !probePiece(grid, w, h, p).blocked;
+// замок закрыт, пока его ключ на поле (клетка головы ключа всё ещё его)
+export const isLocked = (grid, p) => !!p.lock && grid[p.lock.head] === p.lock;
+export const isFree = (grid, w, h, p) => !isLocked(grid, p) && !probePiece(grid, w, h, p).blocked;
 export function removePiece(grid, p) {
   for (const c of p.cells) grid[c] = null;
 }
@@ -175,6 +178,7 @@ export function generate(levelNum) {
   }
   if (p.freeTarget) flipFree(best, p.cols, p.rows, p.freeTarget);
   colorize(best, p.cols, p.rows, rand);
+  if (levelNum >= LOCKS.fromLevel) addLocks(best, p.cols, p.rows, rng(levelNum * 6151 + 11));
   // пустых точек внутри фигуры не остаётся: незанятые клетки (куда змейку поставить нельзя) убираем из фигуры
   let shown = mask;
   if (levelNum > RHYTHM.introLevels) {
@@ -182,6 +186,49 @@ export function generate(levelNum) {
     for (let c = 0; c < shown.length; c++) if (!best[c]) shown[c] = 0;
   }
   return { w: p.cols, h: p.rows, grid: best, mask: shown, shape: p.shape, tag: p.tag, stones };
+}
+
+// Пары «замок–ключ»: замок — змейка, свободная рано, ключ — уходящая хотя бы на keyLag волн позже.
+// Ключ сам замком не бывает; после каждой пары уровень перепроверяется решателем (замок не должен
+// загораживать путь своему ключу).
+function addLocks(grid, w, h, rand) {
+  const wave = new Map();
+  const g = grid.slice();
+  let left = pieces(g);
+  for (let r = 0; left.length; r++) {
+    const free = left.filter((p) => isFree(g, w, h, p));
+    if (!free.length) break;
+    for (const p of free) {
+      wave.set(p, r);
+      removePiece(g, p);
+    }
+    left = left.filter((p) => !wave.has(p));
+  }
+  const all = pieces(grid);
+  const want = Math.min(LOCKS.max, Math.max(1, Math.round(all.length / LOCKS.perSnakes)));
+  const used = new Set();
+  const locks = all.filter((p) => wave.get(p) <= 1).sort(() => rand() - 0.5);
+  let made = 0;
+  for (const L of locks) {
+    if (made >= want) break;
+    if (used.has(L)) continue;
+    const keys = all
+      .filter((K) => !used.has(K) && K !== L && wave.get(K) >= wave.get(L) + LOCKS.keyLag)
+      .map((K) => [K, (K.color === L.color ? 0 : 1) + rand()])
+      .sort((a, b) => a[1] - b[1]);
+    for (const [K] of keys) {
+      L.lock = K;
+      if (!analyze(grid, w, h).solved) {
+        delete L.lock;
+        continue;
+      }
+      K.key = true;
+      L.color = K.color;
+      used.add(L).add(K);
+      made++;
+      break;
+    }
+  }
 }
 
 // Камни — во внутренних клетках фигуры (все 8 соседей внутри), не ближе gap друг к другу

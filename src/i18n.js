@@ -63,6 +63,7 @@ const T = {
       4: 'Большой уровень: «+» или щипок — приблизить, тяни — двигать',
       12: 'Гигантский уровень! Приближай и путешествуй по картине',
       20: 'Серые камни стоят на месте — стрелки в них упираются',
+      30: 'Стрелка с замком уйдёт, только когда улетит ключ того же цвета',
     },
   },
   en: {
@@ -125,6 +126,7 @@ const T = {
       4: 'Big level: «+» or pinch to zoom, drag to move',
       12: 'Giant level! Zoom in and explore the picture',
       20: 'Grey stones never move — arrows bump into them',
+      30: 'A locked arrow can leave only after the key of its colour is gone',
     },
   },
 };
