@@ -306,7 +306,61 @@ export function createEngine(c, rand = Math.random) {
       o.stop(t + dur + 0.05);
     }
   }
+  // свуш вверх (шум, полоса скользит вверх) — основа вариаций победы
+  function whoosh(t, dur, vol, f0 = 500, f1 = 2600) {
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 1.1;
+    bp.frequency.setValueAtTime(f0, t);
+    bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    bp.connect(sfxBus);
+    const n = noise(t, dur + 0.05);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+    n.connect(g).connect(bp);
+  }
+  // россыпь колокольчиков по ступеням notes; последний звенит дольше
+  function sparks(t, notes, gap, dur, vol, cut = 3500) {
+    notes.forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * gap, dur: i === notes.length - 1 ? dur * 2 : dur, vol, parts: BELL, cut }));
+  }
   const WINS = {
+    // --- вариации от ♥ (F, D, W) ---
+    swishSpark() { // свуш переходит в искры
+      const V = SOUND.winVar;
+      const t = now();
+      whoosh(t, 0.3, V.swishVol);
+      sparks(t + 0.25, [7, 8, 9, 10, 12], 0.04, 0.45, V.sparkVol);
+    },
+    swishShort() { // короткий свуш + колокольчик выше
+      const V = SOUND.winVar;
+      const t = now();
+      whoosh(t, 0.22, V.swishVol, 600, 3000);
+      pluck(sfxBus, { f: sfxHz(10), t: t + 0.19, dur: 1.1, vol: V.bellVol, parts: BELL, cut: 3200 });
+    },
+    swishTwo() { // свуш + два колокольчика
+      const V = SOUND.winVar;
+      const t = now();
+      whoosh(t, 0.3, V.swishVol);
+      [9, 12].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + 0.26 + i * 0.1, dur: 1, vol: V.bellVol * 0.85, parts: BELL, cut: 3200 }));
+    },
+    sparkFast() { // искры быстрее и короче
+      sparks(now(), [5, 7, 9, 10, 12], 0.03, 0.4, SOUND.winVar.sparkVol);
+    },
+    sparkSoft() { // искры ниже и мягче
+      sparks(now(), [3, 4, 5, 6, 7, 9], 0.05, 0.5, SOUND.winVar.sparkSoftVol, 2800);
+    },
+    sparkUp() { // искры широкими шагами вверх
+      sparks(now(), [5, 7, 9, 12, 14], 0.06, 0.45, SOUND.winVar.sparkVol);
+    },
+    // хвост из трёх искр и свуш без колокольчика — для смесей с записью «взлёт» (W)
+    sparkTail(delay = 0) {
+      sparks(now() + delay, [9, 10, 12], 0.05, 0.45, SOUND.winVar.sparkVol);
+    },
+    whooshOnly() {
+      whoosh(now(), 0.3, SOUND.winVar.swishVol);
+    },
     // россыпь искр: 7 тихих колокольчиков быстро вверх
     sparkle() {
       const P = SOUND.winSparkle;
@@ -778,7 +832,7 @@ export function createEngine(c, rand = Math.random) {
     stats: () => ({ pads: voices.reduce((s, v) => s + v.pads.size, 0), voices: voices.length, playing }),
   };
 
-  return { sfxDry, sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
+  return { sfxDry, wins: WINS, sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
 }
 
 // ---- модульный API (его зовёт main.js) ----
@@ -875,17 +929,34 @@ function loadWinFiles() {
       .catch(() => null);
   }
 }
-function playBuf(buf, style) {
+function playBuf(buf, style, delay = 0) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
   const g = ctx.createGain();
   g.gain.value = SOUND.winFileVol[style] ?? 0.45;
   src.connect(g).connect(engine.sfxDry);
-  src.start();
+  src.start(ctx.currentTime + delay);
+}
+// смеси записи «взлёт» (up1) с синтезом
+const WIN_MIX = {
+  upSpark: () => withBuf('up1', (b) => {
+    playBuf(b, 'up1');
+    engine.wins.sparkTail(SOUND.winVar.tailDelay);
+  }),
+  swishUp: () => withBuf('up1', (b) => {
+    engine.wins.whooshOnly();
+    playBuf(b, 'up1', SOUND.winVar.upDelay);
+  }),
+};
+function withBuf(id, fn) {
+  if (winBufs[id]) return fn(winBufs[id]);
+  if (winLoads[id]) return winLoads[id].then((b) => (b ? fn(b) : engine.sfx.win()));
+  engine.sfx.win();
 }
 function playWin() {
   if (!sfxEnabled || !ac()) return;
   const style = getStyle('win');
+  if (WIN_MIX[style]) return WIN_MIX[style]();
   if (winBufs[style]) return playBuf(winBufs[style], style);
   // файл ещё грузится — сыграть, как только будет готов; не загрузился — синтез
   if (winLoads[style]) return winLoads[style].then((buf) => (buf ? playBuf(buf, style) : engine.sfx.win()));

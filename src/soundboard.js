@@ -20,6 +20,23 @@ const COMPARE = [
   },
   {
     sound: 'win',
+    title: 'Победа — вариации от твоих ♥ (F, D, W)',
+    note: '▶ — звук пройденного уровня',
+    play: () => sfx.win(),
+    ms: 50,
+    variants: [
+      { id: 'swishSpark', name: 'F+D', hint: 'свуш переходит в искры' },
+      { id: 'swishShort', name: 'F1', hint: 'короткий свуш + колокольчик выше' },
+      { id: 'swishTwo', name: 'F2', hint: 'свуш + два колокольчика' },
+      { id: 'sparkFast', name: 'D1', hint: 'искры быстрее и короче' },
+      { id: 'sparkSoft', name: 'D2', hint: 'искры ниже и мягче' },
+      { id: 'sparkUp', name: 'D3', hint: 'искры широкими шагами вверх' },
+      { id: 'upSpark', name: 'W+D', hint: 'запись «взлёт» + искры' },
+      { id: 'swishUp', name: 'F+W', hint: 'свуш + запись «взлёт»' },
+    ],
+  },
+  {
+    sound: 'win',
     title: 'Победа',
     note: '▶ — звук пройденного уровня',
     play: () => sfx.win(),

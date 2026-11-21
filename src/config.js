@@ -64,6 +64,8 @@ export const SOUND = {
   winMarimba: { vol: 0.34, gap: 0.12, dur: 0.7 },
   winSwish: { vol: 0.45, dur: 0.35, bellVol: 0.3 },
   winGlow: { vol: 0.14, bellVol: 0.26, dur: 1.5 },
+  // вариации вокруг понравившихся F (свуш + колокольчик), D (искры), W (запись «взлёт»)
+  winVar: { sparkVol: 0.26, sparkSoftVol: 0.3, swishVol: 0.45, bellVol: 0.3, tailDelay: 0.18, upDelay: 0.22 },
   // записанные джинглы победы (Kenney Music Jingles, CC0; assets/CREDITS.md) — варианты для сравнения
   winFiles: {
     sax1: 'sounds/win-sax1.mp3', // саксофон, взлёт гаммой (SAX02)
