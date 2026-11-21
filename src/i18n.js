@@ -62,6 +62,7 @@ const T = {
       3: 'Хвост ползёт следом — важен только путь перед носом',
       4: 'Большой уровень: «+» или щипок — приблизить, тяни — двигать',
       12: 'Гигантский уровень! Приближай и путешествуй по картине',
+      20: 'Серые камни стоят на месте — стрелки в них упираются',
     },
   },
   en: {
@@ -123,6 +124,7 @@ const T = {
       3: 'The tail follows — only the path ahead of the nose matters',
       4: 'Big level: «+» or pinch to zoom, drag to move',
       12: 'Giant level! Zoom in and explore the picture',
+      20: 'Grey stones never move — arrows bump into them',
     },
   },
 };

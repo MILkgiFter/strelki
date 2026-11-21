@@ -3,7 +3,7 @@ import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLAS
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
-import { generate, findFree, probePiece, removePiece, pieces, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
+import { generate, findFree, probePiece, removePiece, pieces, isPiece, cellXY, analyze, shapeFor, dayIndex, dailyLevel } from './level.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
 const IS_ADMIN = new URLSearchParams(location.search).has('admin');
@@ -120,12 +120,13 @@ function closeCoach() {
 // ---------- уровень ----------
 // daily — ежедневный уровень: прогресс и звёзды не меняет, своя награда
 function startLevel(n, daily = false) {
-  const { w, h, grid, mask, shape, tag } = generate(n);
+  const { w, h, grid, mask, shape, tag, stones } = generate(n);
   Object.assign(st, {
     level: n,
     w,
     h,
     mask,
+    stones,
     shape,
     tag,
     list: pieces(grid), // змейки на поле (чтобы не собирать их из сетки каждый кадр)
@@ -584,12 +585,12 @@ function pieceAt(clientX, clientY) {
   };
   const inb = (cx, cy) => cx >= 0 && cy >= 0 && cx < st.w && cy < st.h;
   const own = inb(x, y) ? st.grid[y * st.w + x] : null;
-  if (own && shown(own)) return own;
+  if (isPiece(own) && shown(own)) return own;
   let best = null;
   let bestD = LAYOUT.hitRadius;
   for (let cy = y - 1; cy <= y + 1; cy++) {
     for (let cx = x - 1; cx <= x + 1; cx++) {
-      if (!inb(cx, cy) || !st.grid[cy * st.w + cx] || !shown(st.grid[cy * st.w + cx])) continue;
+      if (!inb(cx, cy) || !isPiece(st.grid[cy * st.w + cx]) || !shown(st.grid[cy * st.w + cx])) continue;
       const d = Math.hypot(fx - (cx + 0.5), fy - (cy + 0.5));
       if (d < bestD) {
         bestD = d;
@@ -860,7 +861,7 @@ function tick(now) {
   if (st.hint && now - st.hint.t0 > ANIM.hintShowMs) st.hint = null;
   st.erased = st.erased.filter((e) => now - e.t0 < BOOSTERS.eraseMs);
 
-  if (!st.over && st.grid && st.flyers.length === 0 && st.grid.every((v) => !v)) win();
+  if (!st.over && st.grid && st.flyers.length === 0 && st.grid.every((v) => !isPiece(v))) win();
   if (st.winAt && now >= st.winAt) {
     st.winAt = 0;
     showWin(st.winStars.stars, st.winStars.prev);
@@ -921,7 +922,7 @@ function splashArt() {
     cv.width = 390;
     cv.height = 812;
     cv.style.cssText = `left:${left}%;top:${top}%;width:${width}%;rotate:${rot}deg;animation-delay:${-i * 1.7}s`;
-    const s = { grid: g.grid, w: g.w, h: g.h, mask: g.mask, list: pieces(g.grid), level: 'splash' + n, bumps: new Map(), pops: new Map(),
+    const s = { grid: g.grid, w: g.w, h: g.h, mask: g.mask, stones: g.stones, list: pieces(g.grid), level: 'splash' + n, bumps: new Map(), pops: new Map(),
       flyers: [], hint: null, press: null, shakeT0: -1e9, bornT: -1e9, tutorial: '', showBg: false, transparent: true, cam: null };
     render(cv.getContext('2d'), 390, 812, s, performance.now());
     box.appendChild(cv);

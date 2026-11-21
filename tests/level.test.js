@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generate, solve, params, analyze, pieces, DIRS, cellXY, trajectory, windowAt, dayIndex, dailyLevel } from '../src/level.js';
+import { generate, solve, params, analyze, pieces, STONE, isPiece, DIRS, cellXY, trajectory, windowAt, dayIndex, dailyLevel } from '../src/level.js';
 const inside = (mask) => mask.reduce((t, v) => t + v, 0);
 
 const bent = (p, w) => new Set(p.cells.map((c) => c % w)).size > 1 && new Set(p.cells.map((c) => Math.floor(c / w))).size > 1;
@@ -24,6 +24,23 @@ describe('уровни', () => {
     for (let n = 3; n <= 120; n++) {
       const { grid, mask } = generate(n);
       expect(grid.filter(Boolean).length, `уровень ${n}`).toBe(inside(mask));
+    }
+  });
+
+  it('камни: нет до 20-го уровня, с 20-го есть, внутри фигуры, не двигаются и не считаются змейками', () => {
+    for (let n = 1; n < 20; n++) expect(generate(n).stones.length, `уровень ${n}`).toBe(0);
+    for (let n = 20; n <= 80; n++) {
+      const { grid, mask, stones, w, h } = generate(n);
+      expect(stones.length, `уровень ${n}`).toBeGreaterThanOrEqual(2);
+      for (const c of stones) {
+        expect(grid[c]).toBe(STONE);
+        expect(mask[c]).toBe(1);
+      }
+      expect(pieces(grid).some((p) => p.stone)).toBe(false);
+      // решатель убирает все змейки, камни остаются на месте
+      const g = grid.slice();
+      expect(solve(g, w, h).solved).toBe(true);
+      expect(grid.filter((v) => v && !isPiece(v)).length).toBe(stones.length);
     }
   });
 

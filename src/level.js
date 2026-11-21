@@ -1,11 +1,11 @@
 // Логика уровня: генерация, проверка пути, решатель, геометрия движения. Без DOM — тестируется отдельно.
 //
-// Поле w×h, grid[y*w+x] — ссылка на фигуру или null.
+// Поле w×h, grid[y*w+x] — ссылка на фигуру, STONE (камень) или null.
 // Фигура (стрелка-«змейка») = { id, dir, cells, len, head, color }:
 // cells[0] — голова (нос), дальше тело к хвосту по соседним клеткам (может изгибаться).
 // Инварианты: cells[1] = голова − dir (последний отрезок смотрит туда же, куда нос);
 // ни одна своя клетка не лежит на луче головы — поэтому тело никогда не мешает себе.
-import { DIFFICULTY, GEN_JITTER, RHYTHM, DAILY } from './config.js';
+import { DIFFICULTY, GEN_JITTER, RHYTHM, DAILY, STONES } from './config.js';
 import { SHAPES, RECT, shapeMask, shapeAspect, shapeFill } from './shapes.js';
 import { LANDMARKS } from './landmarks.js';
 import { OBJECTS } from './shapes-objects.js';
@@ -140,7 +140,10 @@ export function probe(grid, w, h, x, y, dir) {
   return { blocked: false, free };
 }
 
-export const pieces = (grid) => [...new Set(grid.filter(Boolean))];
+// Камень: неподвижная клетка-препятствие, одна общая ссылка на все камни поля
+export const STONE = Object.freeze({ stone: true, id: -1, cells: [], len: 0 });
+export const isPiece = (v) => !!v && !v.stone;
+export const pieces = (grid) => [...new Set(grid.filter(isPiece))];
 export const cellXY = (c, w) => [c % w, Math.floor(c / w)];
 export const headXY = (p, w) => cellXY(p.head, w);
 export const probePiece = (grid, w, h, p) => probe(grid, w, h, ...headXY(p, w), p.dir);
@@ -158,8 +161,12 @@ export function generate(levelNum) {
   let best = null;
   let bestScore = -Infinity;
   const mask = shapeMask(p.shape, p.cols, p.rows);
+  // камни ставятся до змеек: лучи сквозь них не проходят, поэтому решаемость сохраняется
+  const stones = levelNum >= STONES.fromLevel ? placeStones(mask, p.cols, p.rows, rng(levelNum * 7919 + 3)) : [];
   for (let t = 0; t < p.tries; t++) {
-    const grid = p.ringLen ? buildRinged(p, rand, mask) : buildOnce(p, rand, mask);
+    const ctx = { grid: new Array(mask.length).fill(null) };
+    for (const c of stones) ctx.grid[c] = STONE;
+    const grid = p.ringLen ? buildRinged(p, rand, mask, ctx) : buildOnce(p, rand, mask, mask, ctx);
     const s = score(analyze(grid, p.cols, p.rows));
     if (s > bestScore) {
       bestScore = s;
@@ -174,7 +181,41 @@ export function generate(levelNum) {
     shown = mask.slice();
     for (let c = 0; c < shown.length; c++) if (!best[c]) shown[c] = 0;
   }
-  return { w: p.cols, h: p.rows, grid: best, mask: shown, shape: p.shape, tag: p.tag };
+  return { w: p.cols, h: p.rows, grid: best, mask: shown, shape: p.shape, tag: p.tag, stones };
+}
+
+// Камни — во внутренних клетках фигуры (все 8 соседей внутри), не ближе gap друг к другу
+function placeStones(mask, W, H, rand) {
+  const inner = [];
+  let inside = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (!mask[y * W + x]) continue;
+      inside++;
+      let ok = true;
+      for (let dy = -1; dy <= 1 && ok; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const X = x + dx;
+          const Y = y + dy;
+          if (X < 0 || Y < 0 || X >= W || Y >= H || !mask[Y * W + X]) ok = false;
+        }
+      }
+      if (ok) inner.push(y * W + x);
+    }
+  }
+  const want = Math.min(STONES.max, Math.max(STONES.min, Math.round(inside * STONES.density)));
+  for (let i = inner.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [inner[i], inner[j]] = [inner[j], inner[i]];
+  }
+  const out = [];
+  for (const c of inner) {
+    if (out.length >= want) break;
+    const x = c % W;
+    const y = Math.floor(c / W);
+    if (out.every((o) => Math.max(Math.abs((o % W) - x), Math.abs(Math.floor(o / W) - y)) >= STONES.gap)) out.push(c);
+  }
+  return out;
 }
 
 // Чем меньше змеек свободно на старте и чем длиннее цепочка — тем сложнее
@@ -186,7 +227,7 @@ function score({ count, freeStart, rounds }) {
 // Если строить всё сразу от центра, к краю лучи внутрь и вдоль края уже закрыты — краевые змейки
 // смотрят наружу и свободны с самого начала (лишние варианты хода). Змейки кольца идут вдоль края
 // и закрывают друг друга. Сетка, лучи и нумерация общие — проходимость гарантирована как прежде.
-function buildRinged(p, rand, mask) {
+function buildRinged(p, rand, mask, ctx = {}) {
   const { cols: W, rows: H } = p;
   const ring = new Uint8Array(mask.length);
   const inner = mask.slice();
@@ -208,7 +249,6 @@ function buildRinged(p, rand, mask) {
       }
     }
   }
-  const ctx = {};
   buildOnce(p, rand, inner, mask, ctx);
   return buildOnce({ ...p, maxLen: p.ringLen }, rand, ring, mask, ctx);
 }
@@ -491,7 +531,7 @@ function colorize(grid, W, H, rand) {
         const ny = y + dy;
         if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
         const q = grid[ny * W + nx];
-        if (q && q !== p && q.id < p.id) near.add(q.color);
+        if (isPiece(q) && q !== p && q.id < p.id) near.add(q.color);
       }
     }
     const offset = Math.floor(rand() * PALETTE_SIZE);

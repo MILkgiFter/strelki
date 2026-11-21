@@ -1,6 +1,6 @@
 // Отрисовка поля на Canvas. Только рисует: состояние не меняет.
 // Змейка — одна линия по центрам клеток со скруглёнными изгибами и наконечником на голове.
-import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS } from './config.js';
+import { ANIM, LAYOUT, COLORS, SNAKE, CAMERA, BOOSTERS, STONES } from './config.js';
 import { DIRS, cellXY, trajectory, windowAt } from './level.js';
 import { shapeAspect, shapeMask } from './shapes.js';
 
@@ -261,6 +261,36 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
   return c.canvas;
 }
 
+// Камни: скруглённый квадрат с бликом сверху и тенью снизу; появляются той же волной, что змейки
+function drawStones(ctx, L, st, now) {
+  if (!st.stones || !st.stones.length) return;
+  const diag = st.w + st.h;
+  for (const c of st.stones) {
+    const [x, y] = cellXY(c, st.w);
+    const at = (now - (st.bornT || 0) - ((x + y) / diag) * ANIM.appearTotalMs) / ANIM.appearMs;
+    if (at <= 0) continue;
+    const k = at < 1 ? backOut(at, ANIM.appearOvershoot) : 1;
+    const side = L.cell * STONES.size * k;
+    const r = side * STONES.radius;
+    const X = L.x + (x + 0.5) * L.cell - side / 2;
+    const Y = L.y + (y + 0.5) * L.cell - side / 2;
+    ctx.globalAlpha = Math.min(1, at * 2);
+    ctx.fillStyle = COLORS.stoneShade;
+    ctx.beginPath();
+    ctx.roundRect(X, Y + side * 0.08, side, side * 0.92, r);
+    ctx.fill();
+    ctx.fillStyle = COLORS.stone;
+    ctx.beginPath();
+    ctx.roundRect(X, Y, side, side * 0.88, r);
+    ctx.fill();
+    ctx.fillStyle = COLORS.stoneLight;
+    ctx.beginPath();
+    ctx.roundRect(X + side * 0.18, Y + side * 0.12, side * 0.64, side * STONES.light * 0.5, r * 0.6);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
 export function render(ctx, w, h, st, now) {
   if (st.transparent) ctx.clearRect(0, 0, w, h);
   else {
@@ -290,6 +320,7 @@ export function render(ctx, w, h, st, now) {
     const bg = background(ctx, st, L);
     if (bg) ctx.drawImage(bg.canvas, L.x - bg.pad * L.zoom, L.y - bg.pad * L.zoom, bg.cw * L.zoom, bg.ch * L.zoom);
   }
+  drawStones(ctx, L, st, now);
 
   // пока горит подсказка, остальные змейки приглушены
   let dimK = 0;
