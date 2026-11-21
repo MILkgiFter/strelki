@@ -51,7 +51,7 @@ export function initSoundboard() {
   box.hidden = true;
   box.innerHTML = `
     <div class="sb-head"><b>🎧 Звуки и музыка</b><button data-act="close">×</button></div>
-    <div class="sb-tip">Слушай, отмечай ✓ оставить / ✎ поменять, пиши, что не так. Звуки эффектов подстраиваются под тональность текущей темы музыки.</div>
+    <div class="sb-tip">Слушай, отмечай ✓ оставить / ✎ поменять, пиши, что не так. Эффекты — записанные звуки Kenney (CC0), музыка пока генеративная.</div>
     <div class="sb-list"></div>
     <div class="sb-foot">
       <button data-act="stop">■ Стоп музыка</button>

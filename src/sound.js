@@ -1,7 +1,7 @@
 // Звуки и музыка синтезируются Web Audio — без файлов и лицензий.
 // Браузер разрешает звук только после жеста пользователя: вызывай unlock() на первом тапе.
 // Шина: эффекты/музыка → master → компрессор → ограничитель → выход, плюс общий реверб.
-import { SOUND, MUSIC } from './config.js';
+import { SOUND, MUSIC, SAMPLES } from './config.js';
 
 const midiHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 // n-я ступень лада scale от тоники root (n может выходить за октаву, в т.ч. быть < 0)
@@ -608,7 +608,7 @@ export function createEngine(c, rand = Math.random) {
     stats: () => ({ pads: voices.reduce((s, v) => s + v.pads.size, 0), voices: voices.length, playing }),
   };
 
-  return { sfx, music, setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
+  return { sfx, music, setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus, sfxDry };
 }
 
 // ---- модульный API (его зовёт main.js) ----
@@ -632,6 +632,7 @@ function ac() {
       if (pendingTheme !== null) engine.music.setTheme(pendingTheme);
       engine.setSfxVolume(sfxVolume);
       engine.music.setVolume(musicVolume);
+      loadSamples();
     } catch (e) {
       ctx = null;
       engine = null;
@@ -661,10 +662,57 @@ export function unlock() {
   ac();
 }
 
+// ---- записанные звуки (SAMPLES в config.js) ----
+const buffers = {}; // имя → [{ buf, off }]; off — тишина в начале mp3, её пропускаем
+function loadSamples() {
+  for (const [name, files] of Object.entries(SAMPLES.files)) {
+    buffers[name] = [];
+    for (const f of files) {
+      fetch(SAMPLES.base + f)
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(f))))
+        .then((b) => new Promise((res, rej) => ctx.decodeAudioData(b, res, rej)))
+        .then((buf) => {
+          const d = buf.getChannelData(0);
+          let i = 0;
+          while (i < d.length && Math.abs(d[i]) < 0.002) i++;
+          buffers[name].push({ buf, off: i / buf.sampleRate });
+        })
+        .catch(() => {}); // нет файла или формат не поддержан — остаётся синтез
+    }
+  }
+}
+let lastPick = {};
+// играет записанный звук; false — его нет (ещё грузится), тогда звучит синтез
+function playSample(name, rate = 1) {
+  const list = buffers[name];
+  if (!list || !list.length) return false;
+  // чередуем варианты, не повторяя один и тот же подряд
+  let k = Math.floor(Math.random() * list.length);
+  if (list.length > 1 && k === lastPick[name]) k = (k + 1) % list.length;
+  lastPick[name] = k;
+  const { buf, off } = list[k];
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.playbackRate.value = rate;
+  const g = ctx.createGain();
+  g.gain.value = SAMPLES.vol[name] ?? 0.5;
+  src.connect(g).connect(engine.sfxDry);
+  src.start(ctx.currentTime, off);
+  return true;
+}
+const sampleArgs = {
+  fly: (combo = 0) => {
+    const k = Math.min(Math.max(combo, 0), SOUND.comboMax) / SOUND.comboMax;
+    return (1 + k * SAMPLES.comboRate) * (1 + (Math.random() * 2 - 1) * SAMPLES.rateJitter);
+  },
+  star: (i = 0) => SAMPLES.starRates[Math.max(0, Math.min(i, SAMPLES.starRates.length - 1))],
+};
+
 const call = (name) =>
   function (...a) {
     if (!sfxEnabled || !ac()) return;
-    engine.sfx[name](...a);
+    const rate = sampleArgs[name] ? sampleArgs[name](...a) : 1;
+    if (!playSample(name, rate)) engine.sfx[name](...a);
   };
 
 export const sfx = {
