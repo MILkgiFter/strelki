@@ -287,7 +287,63 @@ export function createEngine(c, rand = Math.random) {
   };
 
   // ---- варианты победы ----
+  // мягкий аккорд из трёх ступеней (основа для chord и glow)
+  function softChord(t, vol, dur, attack = 0.08, cut = 1800) {
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = cut;
+    lp.connect(sfxBus);
+    for (const n of [0, 2, 4]) {
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'triangle';
+      o.frequency.value = sfxHz(n + 5);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(lp);
+      o.start(t);
+      o.stop(t + dur + 0.05);
+    }
+  }
   const WINS = {
+    // россыпь искр: 7 тихих колокольчиков быстро вверх
+    sparkle() {
+      const P = SOUND.winSparkle;
+      const t = now();
+      [5, 6, 7, 8, 9, 10, 12].forEach((n, i) => pluck(sfxBus, { f: sfxHz(n), t: t + i * P.gap, dur: i === 6 ? P.dur * 2 : P.dur, vol: P.vol, parts: BELL, cut: 3500 }));
+    },
+    // маримба: тёплое деревянное «та-да-даа»
+    marimba() {
+      const P = SOUND.winMarimba;
+      const t = now();
+      [[4, 0], [5, 1], [7, 2.2]].forEach(([n, k], i) => pluck(sfxBus, { f: sfxHz(n), t: t + k * P.gap, dur: i === 2 ? P.dur * 1.6 : P.dur, vol: P.vol, parts: MARIMBA, cut: 2200 }));
+    },
+    // свуш вверх (как тап, только шире) и колокольчик в конце — в одном стиле с тапом
+    swish() {
+      const P = SOUND.winSwish;
+      const t = now();
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = 1.1;
+      bp.frequency.setValueAtTime(500, t);
+      bp.frequency.exponentialRampToValueAtTime(2600, t + P.dur);
+      bp.connect(sfxBus);
+      const n = noise(t, P.dur + 0.05);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(P.vol, t + P.dur * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + P.dur + 0.05);
+      n.connect(g).connect(bp);
+      pluck(sfxBus, { f: sfxHz(9), t: t + P.dur * 0.85, dur: 1.2, vol: P.bellVol, parts: BELL, cut: 3200 });
+    },
+    // тёплый аккорд, над ним один колокольчик
+    glow() {
+      const P = SOUND.winGlow;
+      const t = now();
+      softChord(t, P.vol, P.dur);
+      pluck(sfxBus, { f: sfxHz(10), t: t + 0.12, dur: 1.3, vol: P.bellVol, parts: BELL, cut: 3200 });
+    },
     // два колокольчика вверх (квинта): коротко и светло
     chime() {
       const P = SOUND.winChime;

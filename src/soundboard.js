@@ -29,6 +29,10 @@ const COMPARE = [
       { id: 'chime', name: 'A', hint: 'два колокольчика вверх, коротко' },
       { id: 'harp', name: 'B', hint: 'арфа: быстрый взлёт' },
       { id: 'chord', name: 'C', hint: 'мягкий аккорд, «выдох»' },
+      { id: 'sparkle', name: 'D', hint: 'россыпь искр, быстро вверх' },
+      { id: 'marimba', name: 'E', hint: 'маримба, тёплое «та-да-даа»' },
+      { id: 'swish', name: 'F', hint: 'свуш + колокольчик (как тап)' },
+      { id: 'glow', name: 'G', hint: 'тёплый аккорд + колокольчик' },
     ],
   },
 ];

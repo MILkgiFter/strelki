@@ -54,11 +54,16 @@ export const SOUND = {
   // верный тап: стиль и варианты на выбор (п. звук; сравнение в пульте 🎧 админки)
   // выбранные варианты звуков (сравнение в пульте 🎧 админки):
   // fly: pop — было, bubble — пузырёк, wood — деревяшка, swoosh — свуш (выбран игроком 2026-11-21)
-  // win: arp — было, chime — два колокольчика, harp — арфа вверх, chord — мягкий аккорд
+  // win: arp — было, chime — два колокольчика, harp — арфа вверх, chord — мягкий аккорд,
+  //      sparkle — россыпь искр, marimba — маримба «та-да-даа», swish — свуш + колокольчик, glow — аккорд + колокольчик
   styles: { fly: 'swoosh', win: 'arp' },
   winChime: { vol: 0.3, dur: 1.1, gap: 0.16 },
   winHarp: { vol: 0.26, gap: 0.07, dur: 0.9 },
-  winChord: { vol: 0.2, attack: 0.08, dur: 1.4, cut: 1800 },
+  winChord: { vol: 0.25, attack: 0.08, dur: 1.4, cut: 1800 },
+  winSparkle: { vol: 0.26, gap: 0.045, dur: 0.5 },
+  winMarimba: { vol: 0.34, gap: 0.12, dur: 0.7 },
+  winSwish: { vol: 0.45, dur: 0.35, bellVol: 0.3 },
+  winGlow: { vol: 0.14, bellVol: 0.26, dur: 1.5 },
   tapBubble: { vol: 0.26, f: 520, up: 1.7, dur: 0.07, cut: 2600 },
   tapWood: { vol: 0.32, f: 1100, q: 9, dur: 0.045 },
   tapSwoosh: { vol: 0.38, f0: 700, f1: 2200, dur: 0.14, q: 1.2 },
