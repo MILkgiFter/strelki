@@ -1,7 +1,15 @@
 // Пульт прослушивания (только админка, кнопка 🎧): каждый звук и каждая тема музыки — по кнопке,
 // у каждого отметка «оставить / поменять» и заметка. «Скопировать отзыв» — текст для агента.
 // Отметки хранятся в localStorage (только у этого игрока), на игру не влияют.
-import { sfx, music, unlock } from './sound.js';
+import { sfx, music, unlock, setTapStyle, getTapStyle } from './sound.js';
+
+// варианты верного тапа для сравнения «было / стало»
+const TAPS = [
+  { id: 'pop', name: 'Было', hint: 'мягкий «поп»' },
+  { id: 'bubble', name: 'A', hint: 'пузырёк, «блоп»' },
+  { id: 'wood', name: 'B', hint: 'деревяшка, сухой щелчок' },
+  { id: 'swoosh', name: 'C', hint: 'свуш, «улетела»' },
+];
 
 const KEY = 'strelki.soundReview';
 
@@ -52,6 +60,11 @@ export function initSoundboard() {
   box.innerHTML = `
     <div class="sb-head"><b>🎧 Звуки и музыка</b><button data-act="close">×</button></div>
     <div class="sb-tip">Слушай, отмечай ✓ оставить / ✎ поменять, пиши, что не так. Звуки эффектов подстраиваются под тональность текущей темы музыки.</div>
+    <div class="sb-taps">
+      <div class="sb-name">Верный тап — сравни</div>
+      <div class="sb-when">▶ — серия из 5 тапов. «В игру» — этот вариант звучит в игре (закрой пульт и пройди уровень).</div>
+      ${TAPS.map((v) => `<div class="sb-tap"><button class="sb-play" data-tap="${v.id}">▶</button><div class="sb-text"><b>${v.name}</b> · ${v.hint}</div><button class="sb-use" data-use="${v.id}">в игру</button></div>`).join('')}
+    </div>
     <div class="sb-list"></div>
     <div class="sb-foot">
       <button data-act="stop">■ Стоп музыка</button>
@@ -76,6 +89,8 @@ export function initSoundboard() {
     return el;
   };
   items.forEach((it) => list.appendChild(row(it)));
+  const markUse = () => box.querySelectorAll('.sb-use').forEach((u) => u.classList.toggle('on', u.dataset.use === getTapStyle()));
+  markUse();
 
   box.addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -88,6 +103,16 @@ export function initSoundboard() {
       saveReview(review);
       b.parentElement.querySelectorAll('.sb-mark').forEach((m) => m.classList.toggle('on', m.dataset.mark === r.mark));
       b.parentElement.querySelector('[data-mark="change"]').classList.toggle('change', r.mark === 'change');
+    }
+    if (b.dataset.tap) {
+      const keep = getTapStyle();
+      setTapStyle(b.dataset.tap);
+      [0, 1, 2, 3, 4].forEach((c, i) => setTimeout(() => sfx.fly(c, 3), i * 230));
+      setTimeout(() => setTapStyle(keep === 'pop' ? null : keep), 5 * 230);
+    }
+    if (b.dataset.use) {
+      setTapStyle(b.dataset.use === 'pop' ? null : b.dataset.use);
+      markUse();
     }
     if (b.dataset.act === 'close') box.hidden = true;
     if (b.dataset.act === 'stop') music.stop();

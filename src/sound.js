@@ -213,11 +213,85 @@ export function createEngine(c, rand = Math.random) {
   const now = () => c.currentTime + 0.01;
   let sfxOn = true;
 
+  // ---- варианты верного тапа (SOUND.tapStyle; в админке можно переключить для сравнения) ----
+  let tapStyle = null;
+  const comboUp = (combo, semis) => Math.pow(2, ((Math.min(Math.max(combo, 0), SOUND.comboMax) / SOUND.comboMax) * semis) / 12);
+  const TAPS = {
+    // пузырёк: короткий синус, скользит вверх — «блоп» капли
+    bubble(combo) {
+      const P = SOUND.tapBubble;
+      const t = now();
+      const f = P.f * comboUp(combo, SOUND.comboSemis * 2) * (0.97 + rand() * 0.06);
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = P.cut;
+      lp.connect(sfxDry);
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f, t);
+      o.frequency.exponentialRampToValueAtTime(f * P.up, t + P.dur * 0.8);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(P.vol, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + P.dur);
+      o.connect(g).connect(lp);
+      o.start(t);
+      o.stop(t + P.dur + 0.03);
+    },
+    // деревяшка: щелчок шума через узкий резонатор + быстро гаснущий тон — сухо, тактильно
+    wood(combo) {
+      const P = SOUND.tapWood;
+      const t = now();
+      const f = P.f * comboUp(combo, SOUND.comboSemis * 2) * (0.96 + rand() * 0.08);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = f;
+      bp.Q.value = P.q;
+      bp.connect(sfxDry);
+      const n = noise(t, 0.015);
+      const ng = c.createGain();
+      ng.gain.setValueAtTime(P.vol * 3, t);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.015);
+      n.connect(ng).connect(bp);
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(P.vol, t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + P.dur);
+      o.connect(g).connect(sfxDry);
+      o.start(t);
+      o.stop(t + P.dur + 0.02);
+    },
+    // свуш: мягкий шум, полоса скользит вверх — стрелка «улетает»
+    swoosh(combo, len = 1) {
+      const P = SOUND.tapSwoosh;
+      const t = now();
+      const dur = P.dur * (1 + 0.25 * Math.min(Math.max(len - 1, 0), 6) / 6);
+      const k = comboUp(combo, SOUND.comboSemis * 2);
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = P.q;
+      bp.frequency.setValueAtTime(P.f0 * k, t);
+      bp.frequency.exponentialRampToValueAtTime(P.f1 * k, t + dur);
+      bp.connect(sfxDry);
+      const n = noise(t, dur + 0.02);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(P.vol, t + dur * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      n.connect(g).connect(bp);
+    },
+  };
+
   const sfx = {
     // правильный тап: очень короткий мягкий «поп» (шум + тон в середине), сухой, без мелодии;
     // combo едва поднимает высоту (до comboSemis полутонов), len чуть удлиняет
     fly(combo = 0, len = 1) {
       if (!sfxOn) return;
+      const style = tapStyle || SOUND.tapStyle;
+      if (style !== 'pop' && TAPS[style]) return TAPS[style](combo, len);
       const t = now();
       const k = Math.min(Math.max(combo, 0), SOUND.comboMax) / SOUND.comboMax;
       const semi = Math.pow(2, (k * SOUND.comboSemis) / 12);
@@ -608,7 +682,7 @@ export function createEngine(c, rand = Math.random) {
     stats: () => ({ pads: voices.reduce((s, v) => s + v.pads.size, 0), voices: voices.length, playing }),
   };
 
-  return { sfx, music, setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
+  return { sfx, music, setTapStyle: (s) => (tapStyle = s), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
 }
 
 // ---- модульный API (его зовёт main.js) ----
@@ -632,6 +706,7 @@ function ac() {
       if (pendingTheme !== null) engine.music.setTheme(pendingTheme);
       engine.setSfxVolume(sfxVolume);
       engine.music.setVolume(musicVolume);
+      engine.setTapStyle(tapOverride);
     } catch (e) {
       ctx = null;
       engine = null;
@@ -666,6 +741,27 @@ const call = (name) =>
     if (!sfxEnabled || !ac()) return;
     engine.sfx[name](...a);
   };
+
+// Стиль верного тапа для сравнения (пульт 🎧 в админке). null — как в config (SOUND.tapStyle).
+// Хранится у игрока, чтобы пройти уровень с выбранным вариантом.
+const TAP_KEY = 'strelki.tapStyle';
+let tapOverride = null;
+try {
+  tapOverride = localStorage.getItem(TAP_KEY);
+} catch {
+  /* хранилище недоступно */
+}
+export function setTapStyle(style) {
+  tapOverride = style || null;
+  try {
+    if (tapOverride) localStorage.setItem(TAP_KEY, tapOverride);
+    else localStorage.removeItem(TAP_KEY);
+  } catch {
+    /* не сохранится — только до перезагрузки */
+  }
+  if (engine) engine.setTapStyle(tapOverride);
+}
+export const getTapStyle = () => tapOverride || SOUND.tapStyle;
 
 export const sfx = {
   fly: call('fly'),
