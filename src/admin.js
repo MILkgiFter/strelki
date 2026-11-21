@@ -2,6 +2,7 @@
 // Переход на любой уровень, автопрохождение, прогон диапазона с отчётом.
 // Прогресс и звёзды игрока в этом режиме не сохраняются (см. main.js).
 import { ADMIN } from './config.js';
+import { initSoundboard } from './soundboard.js';
 
 export function initAdmin(api) {
   const { st, startLevel, tap, findFree, analyze } = api;
@@ -18,6 +19,7 @@ export function initAdmin(api) {
       <button id="adm-solve">Решить</button>
       <button id="adm-run">Прогон</button>
       <input id="adm-to" type="number" min="1" value="${ADMIN.runTo}" title="до уровня" />
+      <button id="adm-sounds" title="Прослушать звуки и музыку">🎧</button>
       <button id="adm-hide">×</button>
     </div>
     <div class="admin-status" id="adm-status">готово</div>`;
@@ -70,6 +72,7 @@ export function initAdmin(api) {
   $('adm-prev').onclick = () => go(st.level - 1);
   $('adm-next').onclick = () => go(st.level + 1);
   $('adm-hide').onclick = () => panel.classList.toggle('min');
+  $('adm-sounds').onclick = initSoundboard();
   $('adm-solve').onclick = () => {
     status(`решаю ${info()}…`);
     solve(1, (fr) => status(`решено: ${info()} · жизней ${st.lives} · кадр макс ${Math.max(...fr).toFixed(0)} мс`));

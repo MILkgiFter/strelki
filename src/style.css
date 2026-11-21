@@ -373,3 +373,28 @@ html[data-theme="neon"] #restart svg path { stroke: #ECEAF6; }
 .cb-btn { right: auto; left: calc(16px + var(--safe-l)); }
 html.cb .cb-btn { outline: 3px solid #FFB020; }
 html[data-theme="neon"] .star.on { color: #FFB020; text-shadow: 0 0 12px rgba(255,176,32,.5); }
+
+/* пульт прослушивания звуков (админка, 🎧) */
+.soundboard {
+  position: fixed; inset: calc(12px + var(--safe-t)) 12px calc(12px + var(--safe-b)); z-index: 30;
+  max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px;
+  background: #fff; color: #2E2A24; border-radius: 18px; padding: 14px; box-shadow: 0 12px 40px rgba(46,42,36,.25);
+  font-size: 14px;
+}
+.soundboard[hidden] { display: none; }
+.soundboard button { font: inherit; border: 0; border-radius: 10px; background: #E7E1D5; color: #2E2A24; padding: 6px 10px; cursor: pointer; }
+.sb-head { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
+.sb-tip { color: #8A8275; font-size: 13px; }
+.sb-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.sb-row { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 12px; background: #F4F1EA; }
+.soundboard .sb-play { width: 40px; height: 40px; font-size: 16px; background: #2E2A24; color: #F4F1EA; flex: none; }
+.sb-text { flex: 1; min-width: 0; }
+.sb-name { font-weight: 700; }
+.sb-when { color: #8A8275; font-size: 12px; }
+.sb-note { width: 100%; margin-top: 4px; font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid #E7E1D5; border-radius: 8px; background: #fff; }
+.sb-marks { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.soundboard .sb-mark.on { background: #2BB673; color: #fff; }
+.soundboard .sb-mark.on.change { background: #FF7A59; }
+.sb-foot { display: flex; gap: 8px; justify-content: space-between; }
+.sb-out { width: 100%; height: 90px; font: 12px/1.3 monospace; border-radius: 8px; border: 1px solid #E7E1D5; }
+.sb-out[hidden] { display: none; }
