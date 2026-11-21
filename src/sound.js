@@ -778,7 +778,7 @@ export function createEngine(c, rand = Math.random) {
     stats: () => ({ pads: voices.reduce((s, v) => s + v.pads.size, 0), voices: voices.length, playing }),
   };
 
-  return { sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
+  return { sfxDry, sfx, music, setStyle: (name, s) => (s ? (styleOver[name] = s) : delete styleOver[name]), setSfxOn: (v) => (sfxOn = v), setSfxVolume, getSfxVolume: () => sfxVol, master, musicFade, musicBus, sfxBus };
 }
 
 // ---- модульный API (его зовёт main.js) ----
@@ -803,6 +803,7 @@ function ac() {
       engine.setSfxVolume(sfxVolume);
       engine.music.setVolume(musicVolume);
       for (const [k, v] of Object.entries(styleOverrides)) engine.setStyle(k, v);
+      loadWinFiles();
     } catch (e) {
       ctx = null;
       engine = null;
@@ -862,11 +863,40 @@ export function setStyle(name, style) {
 export const getStyle = (name) => styleOverrides[name] || SOUND.styles[name];
 export const getStyleOverride = (name) => styleOverrides[name] || null;
 
+// записанные джинглы победы (SOUND.winFiles): грузятся при первом звуке; не загрузился — синтез
+const winBufs = {};
+const winLoads = {};
+function loadWinFiles() {
+  for (const [id, file] of Object.entries(SOUND.winFiles || {})) {
+    winLoads[id] = fetch(file)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(file))))
+      .then((b) => new Promise((res, rej) => ctx.decodeAudioData(b, res, rej)))
+      .then((buf) => (winBufs[id] = buf))
+      .catch(() => null);
+  }
+}
+function playBuf(buf, style) {
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = SOUND.winFileVol[style] ?? 0.45;
+  src.connect(g).connect(engine.sfxDry);
+  src.start();
+}
+function playWin() {
+  if (!sfxEnabled || !ac()) return;
+  const style = getStyle('win');
+  if (winBufs[style]) return playBuf(winBufs[style], style);
+  // файл ещё грузится — сыграть, как только будет готов; не загрузился — синтез
+  if (winLoads[style]) return winLoads[style].then((buf) => (buf ? playBuf(buf, style) : engine.sfx.win()));
+  engine.sfx.win();
+}
+
 export const sfx = {
   fly: call('fly'),
   bump: call('bump'),
   hint: call('hint'),
-  win: call('win'),
+  win: playWin,
   star: call('star'),
   lose: call('lose'),
   click: call('click'),

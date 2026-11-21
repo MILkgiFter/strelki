@@ -64,6 +64,15 @@ export const SOUND = {
   winMarimba: { vol: 0.34, gap: 0.12, dur: 0.7 },
   winSwish: { vol: 0.45, dur: 0.35, bellVol: 0.3 },
   winGlow: { vol: 0.14, bellVol: 0.26, dur: 1.5 },
+  // записанные джинглы победы (Kenney Music Jingles, CC0; assets/CREDITS.md) — варианты для сравнения
+  winFiles: {
+    sax1: 'sounds/win-sax1.mp3', // саксофон, взлёт гаммой (SAX02)
+    sax2: 'sounds/win-sax2.mp3', // саксофон, короткий (SAX10)
+    steel1: 'sounds/win-steel1.mp3', // стил-драм, короткий (STEEL10)
+    steel2: 'sounds/win-steel2.mp3', // стил-драм, длиннее (STEEL02)
+    pizz: 'sounds/win-pizz.mp3', // струнные щипком (PIZZI02)
+  },
+  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43 }, // выровнено замером ≈ −15.5 дБ, как синтез
   tapBubble: { vol: 0.26, f: 520, up: 1.7, dur: 0.07, cut: 2600 },
   tapWood: { vol: 0.32, f: 1100, q: 9, dur: 0.045 },
   tapSwoosh: { vol: 0.38, f0: 700, f1: 2200, dur: 0.14, q: 1.2 },
