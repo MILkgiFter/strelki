@@ -385,7 +385,9 @@ html[data-theme="neon"] .star.on { color: #FFB020; text-shadow: 0 0 12px rgba(25
 .soundboard button { font: inherit; border: 0; border-radius: 10px; background: #E7E1D5; color: #2E2A24; padding: 6px 10px; cursor: pointer; }
 .sb-head { display: flex; justify-content: space-between; align-items: center; font-size: 17px; }
 .sb-tip { color: #8A8275; font-size: 13px; }
-.sb-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.sb-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+.sb-list > * { flex: none; }
 .sb-row { display: flex; gap: 8px; align-items: center; padding: 6px; border-radius: 12px; background: #F4F1EA; }
 .soundboard .sb-play { width: 40px; height: 40px; font-size: 16px; background: #2E2A24; color: #F4F1EA; flex: none; }
 .sb-text { flex: 1; min-width: 0; }

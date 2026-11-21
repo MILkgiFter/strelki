@@ -86,12 +86,13 @@ export function initSoundboard() {
   box.innerHTML = `
     <div class="sb-head"><b>🎧 Звуки и музыка</b><button data-act="close">×</button></div>
     <div class="sb-tip">Слушай, отмечай ✓ оставить / ✎ поменять, пиши, что не так. Звуки эффектов подстраиваются под тональность текущей темы музыки.</div>
+    <div class="sb-list">
     ${COMPARE.map((g) => `<div class="sb-taps">
       <div class="sb-name">${g.title} — сравни</div>
       <div class="sb-when">${g.note}. «В игру» — этот вариант звучит в игре (закрой пульт и пройди уровень).</div>
       ${g.variants.map((v) => `<div class="sb-tap"><button class="sb-play" data-try="${g.sound}:${v.id}">▶</button><div class="sb-text"><b>${v.name}</b> · ${v.hint}</div><button class="sb-use" data-use="${g.sound}:${v.id}">в игру</button></div>`).join('')}
     </div>`).join('')}
-    <div class="sb-list"></div>
+    </div>
     <div class="sb-foot">
       <button data-act="stop">■ Стоп музыка</button>
       <button data-act="copy">📋 Скопировать отзыв</button>
