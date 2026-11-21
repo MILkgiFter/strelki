@@ -403,3 +403,5 @@ html[data-theme="neon"] .star.on { color: #FFB020; text-shadow: 0 0 12px rgba(25
 .sb-taps { background: #F4F1EA; border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
 .sb-tap { display: flex; align-items: center; gap: 8px; }
 .soundboard .sb-use.on { background: #2BB673; color: #fff; }
+.soundboard .sb-like { width: 36px; padding: 6px 0; font-size: 16px; color: #8A8275; }
+.soundboard .sb-like.on { color: #FF7A59; background: #FFE4DB; }

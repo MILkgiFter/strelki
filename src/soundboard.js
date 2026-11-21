@@ -112,7 +112,7 @@ export function initSoundboard() {
     ${COMPARE.map((g) => `<div class="sb-taps">
       <div class="sb-name">${g.title} — сравни</div>
       <div class="sb-when">${g.note}. «В игру» — этот вариант звучит в игре (закрой пульт и пройди уровень).</div>
-      ${g.variants.map((v) => `<div class="sb-tap"><button class="sb-play" data-try="${g.sound}:${v.id}">▶</button><div class="sb-text"><b>${v.name}</b> · ${v.hint}</div><button class="sb-use" data-use="${g.sound}:${v.id}">в игру</button></div>`).join('')}
+      ${g.variants.map((v) => `<div class="sb-tap"><button class="sb-play" data-try="${g.sound}:${v.id}">▶</button><div class="sb-text"><b>${v.name}</b> · ${v.hint}</div><button class="sb-like${review['like:' + g.sound + ':' + v.id] ? ' on' : ''}" data-like="${g.sound}:${v.id}" title="близко к тому, что надо">${review['like:' + g.sound + ':' + v.id] ? '♥' : '♡'}</button><button class="sb-use" data-use="${g.sound}:${v.id}">в игру</button></div>`).join('')}
     </div>`).join('')}
     </div>
     <div class="sb-foot">
@@ -165,6 +165,14 @@ export function initSoundboard() {
       g.play();
       setTimeout(() => setStyle(name, keep), g.ms);
     }
+    if (b.dataset.like) {
+      const k = 'like:' + b.dataset.like;
+      if (review[k]) delete review[k];
+      else review[k] = true;
+      saveReview(review);
+      b.classList.toggle('on', !!review[k]);
+      b.textContent = review[k] ? '♥' : '♡';
+    }
     if (b.dataset.use) {
       const [name, id] = b.dataset.use.split(':');
       setStyle(name, id);
@@ -178,7 +186,11 @@ export function initSoundboard() {
         const mark = r.mark === 'keep' ? 'оставить' : r.mark === 'change' ? 'ПОМЕНЯТЬ' : 'не отмечено';
         return `- ${it.name} (${it.id}): ${mark}${r.note ? ' — ' + r.note : ''}`;
       });
-      const text = 'Отзыв по звукам:\n' + lines.join('\n');
+      const liked = COMPARE.flatMap((g) =>
+        g.variants.filter((v) => review['like:' + g.sound + ':' + v.id]).map((v) => `${g.title}: ${v.name} (${v.id}) — ${v.hint}`),
+      );
+      const chosen = COMPARE.map((g) => `${g.title}: в игре ${getStyle(g.sound)}`);
+      const text = ['Отзыв по звукам:', ...lines, '', '♥ Близко к нужному:', ...(liked.length ? liked.map((l) => '- ' + l) : ['- (ничего не отмечено)']), '', 'Сейчас в игре:', ...chosen.map((l) => '- ' + l)].join('\n');
       const out = box.querySelector('.sb-out');
       out.value = text;
       out.hidden = false;
