@@ -349,4 +349,34 @@ export const COLORS = {
   snake: ['#5B7FFF', '#FF7A59', '#2BB673', '#FFB020', '#A76BFF'],
   // цвета направлений — для логотипа и конфетти
   dir: { U: '#5B7FFF', R: '#FF7A59', D: '#2BB673', L: '#A76BFF' },
+  glow: 0, // свечение линий (неоновая тема): ширина ореола от толщины линии
+  glowAlpha: 0,
+};
+
+// Темы оформления (п. 10.2): COLORS — текущая тема, на старте и при переключении
+// в него копируются значения выбранной; CSS переключается через html[data-theme]
+export const THEMES = {
+  light: { ...COLORS, snake: [...COLORS.snake], dir: { ...COLORS.dir } },
+  neon: {
+    ...COLORS,
+    bg: '#14151F',
+    board: '#1D1F2E',
+    albumLocked: '#2C2F48',
+    cell: '#22253A',
+    text: '#ECEAF6',
+    muted: '#8D8FB0',
+    heartEmpty: '#3A3D55',
+    dot: '#34374F',
+    stone: '#4A4D66',
+    stoneLight: '#666A8E',
+    stoneShade: '#2E3044',
+    snake: ['#4DD8FF', '#FF4D8D', '#5CFF7A', '#FFE84D', '#C76BFF'],
+    dir: { U: '#4DD8FF', R: '#FF4D8D', D: '#5CFF7A', L: '#C76BFF' },
+    glow: 1.6,
+    glowAlpha: 0.22,
+  },
+};
+export const THEME = {
+  key: 'strelki.theme',
+  neonStars: 30, // неоновая тема открывается за столько звёзд
 };

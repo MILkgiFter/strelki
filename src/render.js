@@ -83,26 +83,24 @@ function drawSnake(ctx, L, pts, dir, color, width, alpha) {
     const last = px[px.length - 1];
     if (!last || Math.abs(last[0] - X) > 0.01 || Math.abs(last[1] - Y) > 0.01) px.push([X, Y]);
   }
-  ctx.globalAlpha = alpha;
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
-  ctx.lineWidth = width;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
   // тело
+  let body = null;
   if (px.length > 1) {
-    ctx.beginPath();
-    ctx.moveTo(px[0][0], px[0][1]);
+    body = new Path2D();
+    body.moveTo(px[0][0], px[0][1]);
     for (let i = 1; i < px.length - 1; i++) {
       const [ax, ay] = px[i - 1];
       const [bx, by] = px[i];
       const [cx, cy] = px[i + 1];
       const r = Math.min(SNAKE.bendRadius * cell, Math.hypot(bx - ax, by - ay) / 2, Math.hypot(cx - bx, cy - by) / 2);
-      ctx.arcTo(bx, by, cx, cy, r);
+      body.arcTo(bx, by, cx, cy, r);
     }
-    ctx.lineTo(px[px.length - 1][0], px[px.length - 1][1]);
-    ctx.stroke();
+    body.lineTo(px[px.length - 1][0], px[px.length - 1][1]);
   }
 
   // наконечник: треугольник по направлению, кончик впереди центра головы
@@ -111,14 +109,28 @@ function drawSnake(ctx, L, pts, dir, color, width, alpha) {
   const tip = SNAKE.headAhead * cell;
   const base = tip - SNAKE.headLen * cell;
   const half = (SNAKE.headWidth * cell) / 2;
-  ctx.beginPath();
-  ctx.moveTo(hx + dx * tip, hy + dy * tip);
-  ctx.lineTo(hx + dx * base - dy * half, hy + dy * base + dx * half);
-  ctx.lineTo(hx + dx * base + dy * half, hy + dy * base - dx * half);
-  ctx.closePath();
+  const head = new Path2D();
+  head.moveTo(hx + dx * tip, hy + dy * tip);
+  head.lineTo(hx + dx * base - dy * half, hy + dy * base + dx * half);
+  head.lineTo(hx + dx * base + dy * half, hy + dy * base - dx * half);
+  head.closePath();
+
+  // неоновый ореол: та же линия шире и полупрозрачная (дешевле shadowBlur на сотнях змеек)
+  if (COLORS.glow > 0) {
+    // два слоя: широкий бледный и узкий поярче — мягкий переход вместо жёсткой обводки
+    for (const k of [1, 0.45]) {
+      ctx.globalAlpha = alpha * COLORS.glowAlpha * (k === 1 ? 0.55 : 1);
+      ctx.lineWidth = width * (1 + COLORS.glow * k);
+      if (body) ctx.stroke(body);
+      ctx.stroke(head);
+    }
+  }
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = width;
+  if (body) ctx.stroke(body);
   ctx.lineWidth = width * 0.35;
-  ctx.fill();
-  ctx.stroke();
+  ctx.fill(head);
+  ctx.stroke(head);
   ctx.globalAlpha = 1;
 }
 
@@ -207,7 +219,7 @@ function background(ctx, st, L) {
   if (!(cw >= 1 && ch >= 1)) return null; // окно ещё без размера (скрыто/сворачивается)
   const zq = Math.ceil(z * 2) / 2;
   const dens = Math.min(dpr * zq, CAMERA.maxTexture / cw, CAMERA.maxTexture / ch);
-  const key = `${st.level}|${st.w}x${st.h}|${cell.toFixed(3)}|${dens.toFixed(2)}`;
+  const key = `${st.level}|${st.w}x${st.h}|${cell.toFixed(3)}|${dens.toFixed(2)}|${COLORS.board}`;
   if (bgCache.key !== key) {
     const cv = document.createElement('canvas');
     cv.width = Math.ceil(cw * dens);
@@ -272,7 +284,7 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
   const cw = Math.ceil((w + m * 2) * dpr);
   const ch = Math.ceil(h * dpr);
   if (!(cw >= 1 && ch >= 1)) return null;
-  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${live.map((p) => p.id).join(',')}`;
+  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${live.map((p) => p.id).join(',')}`;
   let c = layers.get(ctx);
   if (c && c.key === key && c.list === st.list) return c.canvas;
   if (!c || c.canvas.width !== cw || c.canvas.height !== ch) {

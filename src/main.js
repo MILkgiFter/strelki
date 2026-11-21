@@ -1,5 +1,5 @@
 // Состояние игры, ввод и экраны.
-import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
+import { GAME, ANIM, LAYOUT, STARS, SOUND, MENU, CONFETTI, COLORS, CAMERA, SPLASH, ADMIN, BOOSTERS, DAILY, THEMES, THEME } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
@@ -61,6 +61,17 @@ let progress = IS_ADMIN ? ADMIN.levels : loadLevel();
 let bestStars = load(GAME.starsKey, {});
 if (!bestStars || typeof bestStars !== 'object') bestStars = {};
 const totalStars = () => Object.values(bestStars).reduce((s, v) => s + (Number(v) || 0), 0);
+
+// ---------- тема оформления ----------
+const neonOpen = () => IS_ADMIN || totalStars() >= THEME.neonStars;
+let theme = load(THEME.key, 'light') === 'neon' && neonOpen() ? 'neon' : 'light';
+function applyTheme(name) {
+  theme = name;
+  Object.assign(COLORS, THEMES[name]);
+  document.documentElement.dataset.theme = name;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS.bg);
+}
+applyTheme(theme);
 
 // микшер: громкость музыки и звуков 0..1 (старые выключатели переносятся: выкл = 0)
 const vol = (() => {
@@ -384,6 +395,19 @@ function lose() {
 
 // ---------- бустеры ----------
 let toastTimer = 0;
+function updateThemeButton() {
+  $('theme-name').textContent = t(theme === 'neon' ? 'themeNeon' : 'themeLight');
+  $('theme-note').textContent = neonOpen() ? t('themeSwitch') : t('themeLocked', THEME.neonStars);
+}
+$('theme-btn').addEventListener('click', () => {
+  unlock();
+  sfx.click();
+  if (!neonOpen()) return toast(t('themeLocked', THEME.neonStars));
+  applyTheme(theme === 'neon' ? 'light' : 'neon');
+  save(THEME.key, theme);
+  updateThemeButton();
+});
+
 function toast(text) {
   $('toast').textContent = text;
   $('toast').hidden = false;
@@ -440,6 +464,7 @@ function showMenu() {
   closeOverlay(); // после победы/поражения «Играть» всё равно начинает уровень заново
   $('play-level').textContent = t('playLevel', st.over || st.daily ? progress : st.level);
   $('daily-note').textContent = dailyDoneToday() ? t('dailyDoneNote') : t('dailyNote');
+  updateThemeButton();
   $('levels').hidden = true;
   $('album').hidden = true;
   $('menu').hidden = false;

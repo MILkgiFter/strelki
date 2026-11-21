@@ -333,3 +333,38 @@ body.coaching .boost:not(.boost-ghost) { animation: boost-pulse .9s ease-in-out 
 .card-reward[hidden] { display: none; }
 .ov-continue { display: block; margin: 10px auto 0; }
 .ov-continue[hidden] { display: none; }
+
+/* ---------- неоновая тема (п. 10.2): тёмный фон, светлый текст, тёмные плашки ---------- */
+html[data-theme="neon"] body { background: #14151F; color: #ECEAF6; }
+html[data-theme="neon"] .icon-btn,
+html[data-theme="neon"] .lang-btn,
+html[data-theme="neon"] .btn-ghost,
+html[data-theme="neon"] .boost-ghost { background: #262940; color: #ECEAF6; }
+html[data-theme="neon"] .btn { background: #FFE84D; color: #14151F; box-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 14px rgba(255,232,77,.35); }
+html[data-theme="neon"] .btn-ghost { box-shadow: 0 3px 0 rgba(0,0,0,.45); }
+html[data-theme="neon"] .mixer,
+html[data-theme="neon"] .card,
+html[data-theme="neon"] .coach,
+html[data-theme="neon"] .coach::after,
+html[data-theme="neon"] .lvl,
+html[data-theme="neon"] .alb,
+html[data-theme="neon"] .boost,
+html[data-theme="neon"] .side .icon-btn { background: #23253A; color: #ECEAF6; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+html[data-theme="neon"] .boost.active { background: #3A3520; }
+html[data-theme="neon"] .lvl.current { background: #FFE84D; color: #14151F; }
+html[data-theme="neon"] .lvl.locked,
+html[data-theme="neon"] .alb.locked { background: #1B1D2C; color: #4A4D66; box-shadow: none; }
+html[data-theme="neon"] .lvl-s,
+html[data-theme="neon"] .star { color: #3A3D55; }
+html[data-theme="neon"] .screen,
+html[data-theme="neon"] .levels-head { background: #14151F; }
+html[data-theme="neon"] .overlay { background: rgba(20, 21, 31, .78); }
+html[data-theme="neon"] .finale,
+html[data-theme="neon"] .zoom .icon-btn { color: #ECEAF6; }
+html[data-theme="neon"] .tutorial,
+html[data-theme="neon"] .card-sub { color: #8D8FB0; }
+html[data-theme="neon"] .heart.empty { color: #3A3D55; }
+html[data-theme="neon"] .toast { background: #ECEAF6; color: #14151F; }
+html[data-theme="neon"] .word span { text-shadow: 0 0 12px currentColor; }
+html[data-theme="neon"] .tile { border-color: #14151F; box-shadow: 0 0 14px rgba(255,255,255,.18); }
+html[data-theme="neon"] #restart svg path { stroke: #ECEAF6; }
