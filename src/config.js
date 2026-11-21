@@ -77,8 +77,14 @@ export const SOUND = {
     ok4: 'sounds/win-ok4.mp3', // ровный приятный «динь-дон» (confirmation_004)
     bit1: 'sounds/win-8bit1.mp3', // 8-бит, коротко вверх (NES09)
     bit2: 'sounds/win-8bit2.mp3', // 8-бит, длиннее (NES12)
+    sax3: 'sounds/win-sax3.mp3', // саксофон, перелив вверх (SAX15)
+    sax4: 'sounds/win-sax4.mp3', // саксофон, две ноты (SAX16)
+    steel3: 'sounds/win-steel3.mp3', // стил-драм, взлёт с повтором (STEEL15)
+    bit3: 'sounds/win-8bit3.mp3', // 8-бит, мелодия вверх (NES05)
+    up1: 'sounds/win-up1.mp3', // короткий «взлёт» (Interface Sounds maximize_009)
+    up2: 'sounds/win-up2.mp3', // короткий «взлёт», выше (maximize_007)
   },
-  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43, ok1: 0.38, ok2: 0.42, ok3: 0.3, ok4: 0.3, bit1: 0.52, bit2: 0.52 }, // выровнено замером ≈ −15.5 дБ, как синтез
+  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43, ok1: 0.38, ok2: 0.42, ok3: 0.3, ok4: 0.3, bit1: 0.52, bit2: 0.52, sax3: 0.86, sax4: 0.87, steel3: 0.41, bit3: 0.5, up1: 0.4, up2: 0.47 }, // выровнено замером ≈ −15.5 дБ, как синтез
   tapBubble: { vol: 0.26, f: 520, up: 1.7, dur: 0.07, cut: 2600 },
   tapWood: { vol: 0.32, f: 1100, q: 9, dur: 0.045 },
   tapSwoosh: { vol: 0.38, f0: 700, f1: 2200, dur: 0.14, q: 1.2 },
