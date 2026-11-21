@@ -71,8 +71,14 @@ export const SOUND = {
     steel1: 'sounds/win-steel1.mp3', // стил-драм, короткий (STEEL10)
     steel2: 'sounds/win-steel2.mp3', // стил-драм, длиннее (STEEL02)
     pizz: 'sounds/win-pizz.mp3', // струнные щипком (PIZZI02)
+    ok1: 'sounds/win-ok1.mp3', // «готово», мягкое вверх (Interface Sounds confirmation_002)
+    ok2: 'sounds/win-ok2.mp3', // «готово», коротко (confirmation_003)
+    ok3: 'sounds/win-ok3.mp3', // двухнотное вверх (question_003)
+    ok4: 'sounds/win-ok4.mp3', // ровный приятный «динь-дон» (confirmation_004)
+    bit1: 'sounds/win-8bit1.mp3', // 8-бит, коротко вверх (NES09)
+    bit2: 'sounds/win-8bit2.mp3', // 8-бит, длиннее (NES12)
   },
-  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43 }, // выровнено замером ≈ −15.5 дБ, как синтез
+  winFileVol: { sax1: 0.85, sax2: 0.85, steel1: 0.45, steel2: 0.45, pizz: 0.43, ok1: 0.38, ok2: 0.42, ok3: 0.3, ok4: 0.3, bit1: 0.52, bit2: 0.52 }, // выровнено замером ≈ −15.5 дБ, как синтез
   tapBubble: { vol: 0.26, f: 520, up: 1.7, dur: 0.07, cut: 2600 },
   tapWood: { vol: 0.32, f: 1100, q: 9, dur: 0.045 },
   tapSwoosh: { vol: 0.38, f0: 700, f1: 2200, dur: 0.14, q: 1.2 },
