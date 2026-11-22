@@ -307,13 +307,15 @@ export const SHOP = {
     { id: 'no_ads', type: 'non', grant: { noAds: true } },
     { id: 'all_looks', type: 'non', grant: { allLooks: true } },
     { id: 'boosters_small', type: 'cons', grant: { hint: 5, eraser: 3, life: 3 } },
-    { id: 'boosters_big', type: 'cons', grant: { hint: 15, eraser: 10, life: 10 } },
+    // паки: чем дороже, тем выгоднее за доллар ($0.99 → 11 шт, $4.99 → 90, $9.99 → 220)
+    { id: 'boosters_big', type: 'cons', grant: { hint: 40, eraser: 25, life: 25 } },
+    { id: 'boosters_huge', type: 'cons', grant: { hint: 100, eraser: 60, life: 60 } },
   ],
 };
 
 export const BOOSTERS = {
   start: { hint: 3, eraser: 2, life: 2 },
-  max: 99,
+  max: 999, // запас каждого бустера (огромный пак — до 100 за раз)
   perStar: 1, // бустеров за каждую новую ★ (виды по кругу: лупа → ластик → жизнь)
   eraseMs: 320, // анимация исчезновения под ластиком
   toastMs: 1800, // всплывающая подсказка («жизни и так полные» и т. п.)

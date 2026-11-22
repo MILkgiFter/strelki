@@ -20,6 +20,12 @@ describe('покупки: что даёт товар', () => {
     }
   });
 
+  it('огромный пак больше большого', () => {
+    const b = grantsFor('boosters_big').boosters;
+    const h = grantsFor('boosters_huge').boosters;
+    for (const k of ['hint', 'eraser', 'life']) expect(h[k]).toBeGreaterThan(b[k]);
+  });
+
   it('большой пак больше малого; стартовый набор убирает рекламу и даёт бустеры', () => {
     const s = grantsFor('boosters_small').boosters;
     const b = grantsFor('boosters_big').boosters;
