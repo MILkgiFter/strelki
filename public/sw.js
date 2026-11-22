@@ -52,7 +52,9 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok) {
+          // в кэш как «страницу игры» — только саму игру (не privacy.html и другие страницы)
+          const isGame = new URL(req.url).pathname === new URL(BASE).pathname;
+          if (res.ok && isGame) {
             const copy = res.clone(); // копию снимаем сразу: тело ответа заберёт страница
             e.waitUntil(caches.open(VERSION).then((c) => c.put(BASE, copy)));
           }

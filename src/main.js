@@ -1,7 +1,7 @@
 // Состояние игры, уровень, победа/поражение, экраны, цикл. Ввод — input.js, камера — camera.js, бустеры — boosters-ui.js.
 import { GAME, ANIM, STARS, SOUND, CONFETTI, COLORS, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
-import { t, shapeName, applyStatic, getLang, setLang } from './i18n.js';
+import { t, shapeName, applyStatic, getLang, setLang, LANGS, langName } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
 import { generate, findFree, probePiece, removePiece, pieces, isPiece, isLocked, analyze, dayIndex, dailyLevel } from './level.js';
 import { render, safe } from './render.js';
@@ -562,7 +562,7 @@ document.querySelectorAll('.tile').forEach((el) => {
 function applyLang() {
   applyStatic();
   renderWords();
-  $('lang').textContent = getLang() === 'ru' ? 'EN' : 'RU';
+  $('lang').textContent = getLang().toUpperCase();
   st.tutorial = t('tutorial')[st.level] || '';
   $('tutorial').textContent = st.tutorial;
   $('tutorial').hidden = !st.tutorial;
@@ -571,11 +571,25 @@ function applyLang() {
   if (!$('menu').hidden) showMenu();
   if (!$('levels').hidden) showLevels();
 }
+// выбор языка (п. 12.9): список всех языков, свой — отмечен
 $('lang').addEventListener('click', () => {
   unlock();
   sfx.click();
-  setLang(getLang() === 'ru' ? 'en' : 'ru');
+  const box = $('langs-list');
+  box.innerHTML = LANGS.map((l) => `<button class="look${l === getLang() ? ' on' : ''}" data-lang="${l}"><span class="look-name">${langName(l)}</span></button>`).join('');
+  $('langs').hidden = false;
+});
+$('langs-list').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-lang]');
+  if (!b) return;
+  sfx.click();
+  setLang(b.dataset.lang);
+  $('langs').hidden = true;
   applyLang();
+});
+$('langs-close').addEventListener('click', () => {
+  sfx.click();
+  $('langs').hidden = true;
 });
 
 // ---------- заставка ----------

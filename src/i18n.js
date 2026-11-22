@@ -1,5 +1,7 @@
 // Тексты интерфейса на русском и английском. Язык — по браузеру, можно переключить (сохраняется).
 
+import { LOCALES, LANG_NAMES } from './locales/index.js';
+
 const LANG_KEY = 'strelki.lang';
 
 const T = {
@@ -319,40 +321,56 @@ const ABSTRACT_EN = {
   Галактика: 'Galaxy', 'Пиксель-пришелец': 'Pixel alien', Роза: 'Rose',
 };
 
+// все языки: ru, en и файлы из src/locales
+export const LANGS = ['ru', 'en', ...Object.keys(LOCALES)];
+export const langName = (l) => LANG_NAMES[l] || l;
+// для проверки переводов (tests/i18n.test.js) и переводчиков
+export const STRINGS_EN = T.en;
+export { SHAPE_EN, ABSTRACT_EN };
+
+// язык телефона → наш: точное совпадение кода, иначе русскоязычные соседи → ru, иначе en
+function fromNavigator() {
+  const list = (typeof navigator !== 'undefined' && (navigator.languages?.length ? navigator.languages : [navigator.language])) || [];
+  for (const raw of list) {
+    const code = String(raw || '').toLowerCase().split('-')[0];
+    if (LANGS.includes(code)) return code;
+    if (['uk', 'be', 'kk', 'ky', 'uz', 'tg'].includes(code)) return 'ru';
+  }
+  return 'en';
+}
 function detect() {
   try {
     const saved = localStorage.getItem(LANG_KEY);
-    if (saved === 'ru' || saved === 'en') return saved;
+    if (LANGS.includes(saved)) return saved;
   } catch {
     /* хранилище недоступно */
   }
-  const nav = (navigator.language || 'ru').toLowerCase();
-  return nav.startsWith('ru') || nav.startsWith('uk') || nav.startsWith('be') || nav.startsWith('kk') ? 'ru' : 'en';
+  return fromNavigator();
 }
 
 let lang = detect();
 
 export const getLang = () => lang;
 export function setLang(l) {
-  lang = l === 'en' ? 'en' : 'ru';
+  lang = LANGS.includes(l) ? l : 'en';
   try {
     localStorage.setItem(LANG_KEY, lang);
   } catch {
     /* хранилище недоступно */
   }
 }
-// t('play') → строка; t('level', 5) → функция с аргументами
+// t('play') → строка; t('level', 5) → функция с аргументами; нет перевода → английский
 export function t(key, ...args) {
-  const v = T[lang][key] ?? T.ru[key];
+  const v = (T[lang] || LOCALES[lang]?.strings || {})[key] ?? T.en[key] ?? T.ru[key];
   return typeof v === 'function' ? v(...args) : v;
 }
 export function shapeName(shape) {
   if (!shape || !shape.name) return '';
   if (lang === 'ru') return shape.name;
-  return SHAPE_EN[shape.id] || ABSTRACT_EN[shape.name] || shape.name;
+  const loc = LOCALES[lang];
+  return loc?.shapes?.[shape.id] || loc?.abstract?.[shape.name] || SHAPE_EN[shape.id] || ABSTRACT_EN[shape.name] || shape.name;
 }
 
-// Статичные надписи в HTML: data-i18n — текст, data-i18n-aria — подсказка для экранного диктора
 export function applyStatic(root = document) {
   document.documentElement.lang = lang;
   document.title = t('title');

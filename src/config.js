@@ -293,7 +293,8 @@ export const ADS = {
     interstitialId: 'ca-app-pub-3940256099942544/1033173712', // тестовая реклама между уровнями Google
   },
   interstitialFrom: 10, // не раньше этого уровня
-  interstitialEvery: 3, // не чаще раза в столько пройденных уровней
+  interstitialEvery: 2, // не чаще раза в столько пройденных уровней
+  interstitialMinSec: 90, // и не чаще раза в столько секунд (решение 2026-11-22)
   noAdsKey: 'strelki.noads', // куплено «Без рекламы» (п. 12.7)
 };
 

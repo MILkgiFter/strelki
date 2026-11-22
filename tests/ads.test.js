@@ -8,8 +8,8 @@ describe('реклама между уровнями (SPEC §8)', () => {
     expect(ADS.interstitialFrom).toBeGreaterThanOrEqual(10);
   });
 
-  it('не чаще раза в 3 уровня', () => {
-    expect(ADS.interstitialEvery).toBeGreaterThanOrEqual(3);
+  it('не чаще раза в 2 уровня', () => {
+    expect(ADS.interstitialEvery).toBeGreaterThanOrEqual(2);
     let since = 0;
     let shown = 0;
     for (let lv = 10; lv < 70; lv++) {
@@ -20,6 +20,12 @@ describe('реклама между уровнями (SPEC §8)', () => {
       }
     }
     expect(shown).toBeLessThanOrEqual(Math.ceil(60 / ADS.interstitialEvery));
+  });
+
+  it('не чаще раза в 90 секунд, даже если уровни короткие', () => {
+    expect(ADS.interstitialMinSec).toBeGreaterThanOrEqual(90);
+    expect(shouldInterstitial(20, 5, false, 30)).toBe(false);
+    expect(shouldInterstitial(20, 5, false, 120)).toBe(true);
   });
 
   it('после покупки «Без рекламы» — никогда', () => {

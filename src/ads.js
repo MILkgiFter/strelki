@@ -8,11 +8,13 @@ let plugin = null;
 let events = null;
 let ready = false;
 let sinceAd = 0; // уровней пройдено с последней рекламы между уровнями
+let lastAdAt = 0; // когда была последняя реклама (performance.now), 0 — ещё не было
 const unit = (k) => (ADS.testing ? ADS.test : ADS.real)[k];
 
-// показывать ли рекламу между уровнями: не на первых уровнях, не чаще раза в N, не после «Без рекламы»
-export function shouldInterstitial(level, since, noAds) {
-  return !noAds && level >= ADS.interstitialFrom && since >= ADS.interstitialEvery;
+// показывать ли рекламу между уровнями: не на первых уровнях, не чаще раза в N уровней и в M секунд,
+// не после «Без рекламы»; secs — секунд с прошлой рекламы (Infinity — ещё не было)
+export function shouldInterstitial(level, since, noAds, secs = Infinity) {
+  return !noAds && level >= ADS.interstitialFrom && since >= ADS.interstitialEvery && secs >= ADS.interstitialMinSec;
 }
 
 export function noAdsBought() {
@@ -65,8 +67,10 @@ export async function showRewarded() {
 // после пройденного уровня, перед следующим: иногда полноэкранная реклама
 export async function betweenLevels(level) {
   sinceAd++;
-  if (!ready || !shouldInterstitial(level, sinceAd, noAdsBought())) return;
+  const secs = lastAdAt ? (performance.now() - lastAdAt) / 1000 : Infinity;
+  if (!ready || !shouldInterstitial(level, sinceAd, noAdsBought(), secs)) return;
   sinceAd = 0;
+  lastAdAt = performance.now();
   try {
     await plugin.prepareInterstitial({ adId: unit('interstitialId'), isTesting: ADS.testing });
     await plugin.showInterstitial();
