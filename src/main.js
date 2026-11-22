@@ -59,6 +59,9 @@ initScreens({
   totalStars,
   progress: () => progress,
   bestStars: () => bestStars,
+  boost: () => boost,
+  saveBoost: () => saveBoost(),
+  updateHud,
 });
 
 // микшер: громкость музыки и звуков 0..1 (старые выключатели переносятся: выкл = 0)

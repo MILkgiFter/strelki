@@ -1,5 +1,5 @@
 // Общие мелочи для модулей интерфейса: поиск элемента, сохранение, админская сборка. Без игровой логики.
-import { GAME, DAILY, BOOSTERS, STREAK, TASKS } from './config.js';
+import { GAME, DAILY, BOOSTERS, STREAK, TASKS, COLLECTIONS } from './config.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
 export const IS_ADMIN = new URLSearchParams(location.search).has('admin');
@@ -15,7 +15,7 @@ export function load(key, fallback) {
   }
 }
 export function save(key, value) {
-  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key || key === BOOSTERS.coachKey || key === GAME.volKey || key === STREAK.key || key === TASKS.key)) return;
+  if (IS_ADMIN && (key === GAME.storageKey || key === GAME.starsKey || key === DAILY.key || key === BOOSTERS.coachKey || key === GAME.volKey || key === STREAK.key || key === TASKS.key || key === COLLECTIONS.key)) return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {

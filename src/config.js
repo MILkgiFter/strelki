@@ -253,6 +253,30 @@ export const TASKS = {
   bigTags: ['big', 'huge', 'mega'],
 };
 
+// Коллекции в альбоме (п. 12.4): каждая узнаваемая фигура — ровно в одном наборе;
+// собрал весь набор (все его уровни пройдены) — награда бустерами
+export const COLLECTIONS = {
+  key: 'strelki.collections', // { claimed: { id: true } }
+  list: [
+    { id: 'animals', icon: '🐾', reward: { hint: 2, life: 1 },
+      shapes: ['snail', 'fish', 'cat', 'turtle', 'bird', 'elephant', 'whale', 'dinosaur', 'dog', 'crab', 'octopus', 'owl'] },
+    { id: 'tales', icon: '🐉', reward: { eraser: 2, life: 1 },
+      shapes: ['gorynych', 'firebird', 'matryoshka', 'bogatyr', 'unicorn', 'dragon', 'mermaid', 'fairy', 'elf', 'troll', 'ogre', 'goblin', 'gnome'] },
+    { id: 'heroes', icon: '🦸', reward: { hint: 2, eraser: 1, life: 1 },
+      shapes: ['paladin', 'viking', 'knight', 'necromancer', 'superhero', 'pirate', 'ballerina', 'astronaut', 'alien', 'wizard', 'samurai', 'mummy', 'vampire', 'robot', 'ghost'] },
+    { id: 'signs', icon: '⭐', reward: { hint: 2, eraser: 1, life: 1 },
+      shapes: ['hourglass', 'hexagon', 'diamond', 'drop', 'shield', 'star', 'crown', 'clover', 'ring', 'club', 'horseshoe', 'arrowsign', 'heart', 'lightning', 'moon'] },
+    { id: 'transport', icon: '🚂', reward: { eraser: 1, life: 1 },
+      shapes: ['train', 'bus', 'car', 'bike', 'heli', 'plane', 'boat', 'anchor', 'rocket'] },
+    { id: 'things', icon: '🎸', reward: { hint: 1, eraser: 1 },
+      shapes: ['guitar', 'clock', 'key', 'balloon', 'cup', 'bell', 'headphones', 'bulb', 'house', 'arch'] },
+    { id: 'nature', icon: '🍓', reward: { hint: 2, life: 1 },
+      shapes: ['strawberry', 'cherry', 'palm', 'cake', 'carrot', 'leaf', 'icecream', 'sun', 'cactus', 'snowflake', 'cloud', 'banana', 'mushroom', 'tree'] },
+    { id: 'world', icon: '🗼', reward: { hint: 2, eraser: 2, life: 2 },
+      shapes: ['bigben', 'eiffel', 'kremlin', 'tajmahal', 'colosseum', 'pyramids', 'skyline', 'mountains', 'pisa', 'lighthouse'] },
+  ],
+};
+
 export const BOOSTERS = {
   start: { hint: 3, eraser: 2, life: 2 },
   max: 99,

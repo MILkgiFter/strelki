@@ -489,3 +489,19 @@ html[data-look="chalk"] .overlay { background: rgba(34, 53, 43, .8); }
 /* «Закат»: тёплый фон */
 html[data-look="sunset"] body, html[data-look="sunset"] .screen, html[data-look="sunset"] .levels-head { background: #FFF1E6; }
 html[data-look="sunset"] .mtile, html[data-look="sunset"] .btn-ghost, html[data-look="sunset"] .icon-btn, html[data-look="sunset"] .lang-btn { background: #FBE1CF; }
+
+/* альбом по коллекциям (п. 12.4): заголовок набора на всю ширину сетки */
+.alb-head {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin-top: 10px;
+  padding: 10px 12px; border-radius: 14px; background: #E7E1D5;
+}
+.alb-head.ready { outline: 3px solid #FFB020; }
+.alb-hi { font-size: 24px; }
+.alb-ht { flex: 1; display: flex; flex-direction: column; text-align: left; }
+.alb-ht small { color: #8A8275; font-size: 12px; font-weight: 600; }
+.alb-rw { font-size: 13px; color: #8A8275; white-space: nowrap; }
+.alb-ok { font-size: 22px; font-weight: 800; color: #2BB673; }
+.btn.alb-claim { padding: 8px 12px; font-size: 14px; white-space: nowrap; }
+html[data-theme="neon"] .alb-head { background: #262940; }
+html[data-theme="neon"] .alb-ht small, html[data-theme="neon"] .alb-rw { color: #8D8FB0; }
+html[data-look="chalk"] .alb-head { background: #34503F; }

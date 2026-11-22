@@ -1,5 +1,7 @@
 // Экраны и настройки вида: меню, выбор уровня, альбом, тема (светлая / неон за ★), режим для дальтоников.
-import { MENU, COLORS, THEMES, THEME, COLORBLIND, SKINS } from './config.js';
+import { MENU, COLORS, THEMES, THEME, COLORBLIND, SKINS, COLLECTIONS } from './config.js';
+import { collectionsStatus, claimCollection } from './collections.js';
+import { grantSet } from './boosters.js';
 import { t, shapeName } from './i18n.js';
 import { sfx, unlock } from './sound.js';
 import { shapeFor } from './level.js';
@@ -10,7 +12,7 @@ import { maybeShowStreak } from './streak-ui.js';
 import { updateTasksButton } from './tasks-ui.js';
 
 // всё, что принадлежит main.js: состояние, прогресс, запуск уровней (progress и звёзды — через функции, они меняются)
-let st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalStars;
+let st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalStars, boost, saveBoost, updateHud;
 let progress = () => 1;
 let bestStars = () => ({});
 
@@ -99,6 +101,7 @@ export function showMenu() {
   updateThemeButton();
   maybeShowStreak();
   updateTasksButton();
+  updateAlbumTile();
   $('levels').hidden = true;
   $('album').hidden = true;
   $('menu').hidden = false;
@@ -119,26 +122,57 @@ function albumEntries() {
   }
   return albumList;
 }
+const REWARD_ICONS = { hint: '🔍', eraser: '🧽', life: '♥' };
+const rewardText = (r) => Object.entries(r).map(([k, n]) => `${REWARD_ICONS[k]}${n > 1 ? '×' + n : ''}`).join(' ');
+const albumOpen = (e) => e.n < progress() || Number(bestStars()[e.n]) > 0;
+const openShapes = () => new Set(albumEntries().filter(albumOpen).map((e) => e.shape.id));
+// точка на плитке «Альбом»: есть собранный, но не забранный набор
+export function updateAlbumTile() {
+  const ready = collectionsStatus(openShapes(), load(COLLECTIONS.key, null)).some((c) => c.done && !c.claimed);
+  $('open-album').classList.toggle('ready', ready);
+  $('open-album').querySelector('.mt-n').textContent = ready ? t('tasksNoteReady') : '';
+}
+// Альбом по коллекциям (п. 12.4): заголовок набора с прогрессом и наградой, под ним его фигуры
 function showAlbum() {
   const colors = Object.values(COLORS.snake);
-  const list = albumEntries().map((e) => ({ ...e, open: e.n < progress() || Number(bestStars()[e.n]) > 0 }));
+  const entries = albumEntries().map((e) => ({ ...e, open: albumOpen(e) }));
+  const status = collectionsStatus(new Set(entries.filter((e) => e.open).map((e) => e.shape.id)), load(COLLECTIONS.key, null));
+  const inSets = new Set(COLLECTIONS.list.flatMap((c) => c.shapes));
+  const sections = status.map((c) => ({ c, items: entries.filter((e) => c.shapes.includes(e.shape.id)) }));
+  const rest = entries.filter((e) => !inSets.has(e.shape.id));
+  if (rest.length) sections.push({ c: null, items: rest });
   const grid = $('album-grid');
   grid.innerHTML = '';
-  list.forEach((e, i) => {
-    const btn = document.createElement('button');
-    btn.className = e.open ? 'alb' : 'alb locked';
-    if (e.open) btn.dataset.n = e.n;
-    else btn.disabled = true;
-    const cv = document.createElement('canvas');
-    drawSilhouette(cv, e.shape, e.open ? colors[i % colors.length] : COLORS.albumLocked, MENU.albumThumb, MENU.albumCells);
-    const name = document.createElement('span');
-    name.className = 'alb-name';
-    name.textContent = e.open ? shapeName(e.shape) : t('albumLevel', e.n);
-    btn.setAttribute('aria-label', e.open ? shapeName(e.shape) : t('levelLocked', e.n));
-    btn.append(cv, name);
-    grid.appendChild(btn);
-  });
-  $('album-count').textContent = `${list.filter((e) => e.open).length} / ${list.length}`;
+  let k = 0;
+  for (const { c, items } of sections) {
+    const head = document.createElement('div');
+    head.className = 'alb-head' + (c && c.done && !c.claimed ? ' ready' : '');
+    if (c) {
+      const right = c.claimed
+        ? '<span class="alb-ok">✓</span>'
+        : c.done
+          ? `<button class="btn alb-claim" data-coll="${c.id}">${t('streakClaim')} ${rewardText(c.reward)}</button>`
+          : `<span class="alb-rw">${rewardText(c.reward)}</span>`;
+      head.innerHTML = `<span class="alb-hi">${c.icon}</span><span class="alb-ht"><b>${t('coll_' + c.id)}</b><small>${c.have} / ${c.total}</small></span>${right}`;
+    } else head.innerHTML = `<span class="alb-ht"><b>${t('collRest')}</b></span>`;
+    grid.appendChild(head);
+    for (const e of items) {
+      const btn = document.createElement('button');
+      btn.className = e.open ? 'alb' : 'alb locked';
+      if (e.open) btn.dataset.n = e.n;
+      else btn.disabled = true;
+      const cv = document.createElement('canvas');
+      drawSilhouette(cv, e.shape, e.open ? colors[k % colors.length] : COLORS.albumLocked, MENU.albumThumb, MENU.albumCells);
+      k++;
+      const name = document.createElement('span');
+      name.className = 'alb-name';
+      name.textContent = e.open ? shapeName(e.shape) : t('albumLevel', e.n);
+      btn.setAttribute('aria-label', e.open ? shapeName(e.shape) : t('levelLocked', e.n));
+      btn.append(cv, name);
+      grid.appendChild(btn);
+    }
+  }
+  $('album-count').textContent = `${entries.filter((e) => e.open).length} / ${entries.length}`;
   $('menu').hidden = true;
   $('album').hidden = false;
   $('album').scrollTop = 0;
@@ -167,7 +201,7 @@ export function showLevels() {
 }
 
 export function initScreens(api) {
-  ({ st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalStars, progress, bestStars } = api);
+  ({ st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalStars, progress, bestStars, boost, saveBoost, updateHud } = api);
   loadTheme();
   applyTheme(theme);
 
@@ -250,6 +284,21 @@ export function initScreens(api) {
     showMenu();
   });
   $('album-grid').addEventListener('click', (e) => {
+    const cb = e.target.closest('[data-coll]');
+    if (cb) {
+      unlock();
+      const { state, reward } = claimCollection(openShapes(), load(COLLECTIONS.key, null), cb.dataset.coll);
+      save(COLLECTIONS.key, state);
+      grantSet(boost(), reward);
+      saveBoost();
+      updateHud();
+      sfx.hint();
+      toast(t('reward', rewardText(reward)));
+      const y = $('album').scrollTop;
+      showAlbum();
+      $('album').scrollTop = y;
+      return;
+    }
     const btn = e.target.closest('.alb[data-n]');
     if (!btn) return;
     unlock();
