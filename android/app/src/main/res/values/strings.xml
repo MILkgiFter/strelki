@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Стрелки</string>
+    <string name="title_activity_main">Стрелки</string>
+    <string name="package_name">io.github.milkgifter.strelki</string>
+    <string name="custom_url_scheme">io.github.milkgifter.strelki</string>
+</resources>
