@@ -509,3 +509,8 @@ html[data-look="chalk"] .alb-head { background: #34503F; }
 /* реклама за награду (п. 12.6): окно «ролик за бустер» поверх игры */
 #adoffer { z-index: 8; }
 .btn.ov-ad { margin-top: 8px; }
+
+/* магазин (п. 12.7) */
+#shop { z-index: 7; }
+#shop-btn { right: auto; left: calc(16px + var(--safe-l)); }
+.shop-price { white-space: nowrap; }

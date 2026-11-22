@@ -1,5 +1,5 @@
 // Экраны и настройки вида: меню, выбор уровня, альбом, тема (светлая / неон за ★), режим для дальтоников.
-import { MENU, COLORS, THEMES, THEME, COLORBLIND, SKINS, COLLECTIONS } from './config.js';
+import { MENU, COLORS, THEMES, THEME, COLORBLIND, SKINS, COLLECTIONS, SHOP } from './config.js';
 import { collectionsStatus, claimCollection } from './collections.js';
 import { grantSet } from './boosters.js';
 import { t, shapeName } from './i18n.js';
@@ -20,7 +20,7 @@ let bestStars = () => ({});
 let theme = 'light';
 let skin = 'normal';
 let colorblind = false;
-const isOpen = (item) => IS_ADMIN || totalStars() >= item.stars;
+const isOpen = (item) => IS_ADMIN || load(SHOP.allLooksKey, false) === true || totalStars() >= item.stars;
 const themeItem = (id) => THEME.list.find((x) => x.id === id);
 const skinItem = (id) => SKINS.list.find((x) => x.id === id);
 function loadTheme() {

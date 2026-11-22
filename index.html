@@ -61,6 +61,15 @@
     </div>
   </div>
 
+  <div class="overlay" id="shop" hidden>
+    <div class="card card-streak card-looks">
+      <div class="card-title" data-i18n="shopTitle">Магазин</div>
+      <div class="card-sub" data-i18n="shopSub">Игра бесплатная — покупки по желанию</div>
+      <div class="tasks-list" id="shop-list"></div>
+      <button class="link-btn" id="shop-restore" data-i18n="shopRestore">Восстановить покупки</button>
+      <button class="link-btn" id="shop-close" data-i18n="streakOk">Отлично</button>
+    </div>
+  </div>
   <div class="overlay" id="adoffer" hidden>
     <div class="card card-streak">
       <div class="card-title" id="adoffer-title"></div>
@@ -121,6 +130,7 @@
   <section class="screen" id="menu" hidden>
     <button class="lang-btn" id="lang" data-i18n-aria="langSwitch">EN</button>
     <button class="lang-btn cb-btn" id="cb" data-i18n-aria="cbSwitch" data-i18n-title="cbSwitch">👁</button>
+    <button class="lang-btn cb-btn" id="shop-btn" data-i18n-aria="shopTitle" hidden>🛒</button>
     <div class="brand brand-small" aria-hidden="true">
       <span class="tile t1">↑</span><span class="tile t2">→</span><span class="tile t3">↓</span><span class="tile t4">←</span>
       <div class="word" data-word></div>

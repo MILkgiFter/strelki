@@ -13,6 +13,7 @@ import { initScreens, showMenu, showLevels, hideScreens } from './screens.js';
 import { initStreakUI } from './streak-ui.js';
 import { initTasksUI, tasksOnEvent } from './tasks-ui.js';
 import { initAds, adsReady, showRewarded, betweenLevels } from './ads.js';
+import { initShopUI } from './shop-ui.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -418,6 +419,7 @@ initBoostersUI({ st, boost, saveBoost, updateHud });
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
 initAds();
+initShopUI({ grant: (set) => { grantSet(boost, set); saveBoost(); updateHud(); } });
 
 $('restart').addEventListener('click', () => {
   unlock();

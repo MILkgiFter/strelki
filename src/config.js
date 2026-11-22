@@ -297,6 +297,20 @@ export const ADS = {
   noAdsKey: 'strelki.noads', // куплено «Без рекламы» (п. 12.7)
 };
 
+// Покупки (п. 12.7): Google Play Billing через cordova-plugin-purchase, только в приложении.
+// id товара должен совпадать с товаром в Play Console. non — разовая, cons — расходуется (можно купить снова).
+// grant: бустеры и флаги (noAds — без рекламы между уровнями, allLooks — все темы и скины).
+export const SHOP = {
+  allLooksKey: 'strelki.allLooks',
+  products: [
+    { id: 'starter_pack', type: 'non', grant: { noAds: true, hint: 10, eraser: 5, life: 5 } },
+    { id: 'no_ads', type: 'non', grant: { noAds: true } },
+    { id: 'all_looks', type: 'non', grant: { allLooks: true } },
+    { id: 'boosters_small', type: 'cons', grant: { hint: 5, eraser: 3, life: 3 } },
+    { id: 'boosters_big', type: 'cons', grant: { hint: 15, eraser: 10, life: 10 } },
+  ],
+};
+
 export const BOOSTERS = {
   start: { hint: 3, eraser: 2, life: 2 },
   max: 99,
