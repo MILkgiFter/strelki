@@ -61,6 +61,16 @@
     </div>
   </div>
 
+  <div class="overlay" id="streak" hidden>
+    <div class="card card-streak">
+      <div class="card-title" data-i18n="streakTitle">Подарок дня</div>
+      <div class="card-sub" id="streak-sub"></div>
+      <div class="streak-days" id="streak-days"></div>
+      <div class="card-reward" id="streak-got" hidden></div>
+      <button class="btn btn-big" id="streak-claim" data-i18n="streakClaim">Забрать</button>
+      <button class="link-btn" id="streak-later"></button>
+    </div>
+  </div>
   <div class="overlay" id="overlay" hidden>
     <div class="card">
       <div class="stars" id="ov-stars" hidden>
@@ -92,6 +102,7 @@
       <button class="btn btn-ghost btn-big" id="open-daily"><span data-i18n="daily">Ежедневный</span> <span class="btn-note" id="daily-note"></span></button>
       <button class="btn btn-ghost btn-big" id="open-levels" data-i18n="levels">Уровни</button>
       <button class="btn btn-ghost btn-big" id="open-album" data-i18n="album">Альбом</button>
+      <button class="btn btn-ghost btn-big" id="open-streak"><span data-i18n="streakTitle">Подарок дня</span> <span class="btn-note" id="streak-note"></span></button>
       <button class="btn btn-ghost btn-big" id="theme-btn"><span id="theme-name"></span> <span class="btn-note" id="theme-note"></span></button>
     </div>
   </section>

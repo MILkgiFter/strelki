@@ -10,6 +10,7 @@ import { initCamera, clampCam, zoomButtons } from './camera.js';
 import { initInput } from './input.js';
 import { initBoostersUI, setMode, erase } from './boosters-ui.js';
 import { initScreens, showMenu, showLevels, hideScreens } from './screens.js';
+import { initStreakUI } from './streak-ui.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -367,6 +368,7 @@ function lose() {
 initCamera(st, canvas);
 initInput(st, canvas, (p) => (st.mode === 'erase' ? erase(p) : tap(p)));
 initBoostersUI({ st, boost, saveBoost, updateHud });
+initStreakUI({ boost: () => boost, saveBoost, updateHud });
 
 $('restart').addEventListener('click', () => {
   unlock();

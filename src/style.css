@@ -405,3 +405,23 @@ html[data-theme="neon"] .star.on { color: #FFB020; text-shadow: 0 0 12px rgba(25
 .soundboard .sb-use.on { background: #2BB673; color: #fff; }
 .soundboard .sb-like { width: 36px; padding: 6px 0; font-size: 16px; color: #8A8275; }
 .soundboard .sb-like.on { color: #FF7A59; background: #FFE4DB; }
+
+/* подарок дня (п. 12.1): календарь серии из 7 дней */
+.card-streak { max-width: 360px; padding: 24px 18px; }
+.streak-days { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 18px 0 6px; }
+.sd {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 64px; padding: 6px 2px; border-radius: 14px; background: #F4F1EA; color: #8A8275;
+}
+.sd.big { grid-column: span 2; }
+.sd-day { font-size: 12px; font-weight: 600; }
+.sd-gift { font-size: 17px; font-weight: 700; color: #2E2A24; white-space: nowrap; }
+.sd.done { background: #E3F4EA; }
+.sd.done .sd-gift { color: #2BB673; font-size: 22px; }
+.sd.now { background: #FFF6DF; outline: 3px solid #FFB020; animation: boost-pulse .9s ease-in-out infinite; }
+#open-streak.ready { outline: 3px solid #FFB020; }
+html[data-theme="neon"] .sd { background: #1B1D2C; color: #8D8FB0; }
+html[data-theme="neon"] .sd-gift { color: #ECEAF6; }
+html[data-theme="neon"] .sd.done { background: #173326; }
+html[data-theme="neon"] .sd.now { background: #3A3520; }
+#streak { z-index: 7; } /* поверх экрана меню (z 6) */
