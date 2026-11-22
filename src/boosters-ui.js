@@ -7,6 +7,8 @@ import { view } from './render.js';
 import { findFree, removePiece, cellXY } from './level.js';
 import { clampCam, viewCenter } from './camera.js';
 import { $ } from './store.js';
+import { adsReady, showRewarded } from './ads.js';
+import { grantSet } from './boosters.js';
 
 let st = null;
 let boost = null;
@@ -48,7 +50,7 @@ export function erase(piece) {
 export function useLife() {
   if (st.over) return;
   if (st.lives >= GAME.lives) return toast(t('lifeFull'));
-  if (!spend(boost, 'life')) return toast(t('noBoost'));
+  if (!spend(boost, 'life')) return noBoost('life');
   st.usedBoost = true;
   st.usedLife = true;
   saveBoost();
@@ -59,7 +61,7 @@ export function useLife() {
 
 export function useHint() {
   if (st.over || st.hint) return; // пока подсказка горит — новую не тратим
-  if (boost.hint <= 0) return toast(t('noBoost'));
+  if (boost.hint <= 0) return noBoost('hint');
   const piece = findFree(st.grid, st.w, st.h);
   if (!piece) return;
   spend(boost, 'hint');
@@ -79,6 +81,24 @@ export function useHint() {
   updateHud();
 }
 
+// бустер закончился: в приложении — предложить ролик за +1, иначе просто сообщить
+const AD_ICONS = { hint: '🔍', eraser: '🧽', life: '♥' };
+export function noBoost(kind) {
+  if (!adsReady()) return toast(t('noBoost'));
+  $('adoffer-title').textContent = t('adBoost', AD_ICONS[kind]);
+  $('adoffer').hidden = false;
+  $('adoffer-no').onclick = () => ($('adoffer').hidden = true);
+  $('adoffer-watch').onclick = async () => {
+    $('adoffer').hidden = true;
+    if (!(await showRewarded())) return;
+    grantSet(boost, { [kind]: 1 });
+    saveBoost();
+    updateHud();
+    sfx.hint();
+    toast(t('reward', '+1 ' + AD_ICONS[kind]));
+  };
+}
+
 export function initBoostersUI(api) {
   ({ st, boost, saveBoost, updateHud } = api);
   $('b-eraser').addEventListener('click', () => {
@@ -86,7 +106,7 @@ export function initBoostersUI(api) {
     sfx.click();
     if (st.over) return;
     if (st.mode === 'erase') return setMode(null);
-    if (boost.eraser <= 0) return toast(t('noBoost'));
+    if (boost.eraser <= 0) return noBoost('eraser');
     setMode('erase');
   });
   $('b-life').addEventListener('click', () => {

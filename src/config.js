@@ -277,6 +277,26 @@ export const COLLECTIONS = {
   ],
 };
 
+// Реклама (п. 12.6, SPEC §8): только в приложении. Аккаунт AdMob пользователя, приложение «Стрелки».
+// testing: true — показываются тестовые ролики Google (показы/клики по своей настоящей рекламе
+// при разработке запрещены правилами AdMob). Перед выпуском в стор: testing: false.
+// ID приложения (real.appId) прописан и в android/app/src/main/res/values/strings.xml (admob_app_id).
+export const ADS = {
+  testing: true,
+  real: {
+    appId: 'ca-app-pub-7222055770291725~5642118498',
+    rewardedId: 'ca-app-pub-7222055770291725/5450546801', // strelki_rewarded
+    interstitialId: 'ca-app-pub-7222055770291725/4638534727', // strelki_interstitial
+  },
+  test: {
+    rewardedId: 'ca-app-pub-3940256099942544/5224354917', // тестовый ролик за награду Google
+    interstitialId: 'ca-app-pub-3940256099942544/1033173712', // тестовая реклама между уровнями Google
+  },
+  interstitialFrom: 10, // не раньше этого уровня
+  interstitialEvery: 3, // не чаще раза в столько пройденных уровней
+  noAdsKey: 'strelki.noads', // куплено «Без рекламы» (п. 12.7)
+};
+
 export const BOOSTERS = {
   start: { hint: 3, eraser: 2, life: 2 },
   max: 99,

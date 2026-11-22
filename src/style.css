@@ -505,3 +505,7 @@ html[data-look="sunset"] .mtile, html[data-look="sunset"] .btn-ghost, html[data-
 html[data-theme="neon"] .alb-head { background: #262940; }
 html[data-theme="neon"] .alb-ht small, html[data-theme="neon"] .alb-rw { color: #8D8FB0; }
 html[data-look="chalk"] .alb-head { background: #34503F; }
+
+/* реклама за награду (п. 12.6): окно «ролик за бустер» поверх игры */
+#adoffer { z-index: 8; }
+.btn.ov-ad { margin-top: 8px; }

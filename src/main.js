@@ -12,6 +12,7 @@ import { initBoostersUI, setMode, erase } from './boosters-ui.js';
 import { initScreens, showMenu, showLevels, hideScreens } from './screens.js';
 import { initStreakUI } from './streak-ui.js';
 import { initTasksUI, tasksOnEvent } from './tasks-ui.js';
+import { initAds, adsReady, showRewarded, betweenLevels } from './ads.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -187,6 +188,7 @@ function updateHud() {
 function showOverlay(title, sub, btn, action, stars = 0) {
   const token = ++overlayToken;
   $('ov-continue').hidden = true;
+  $('ov-ad').hidden = true;
   $('ov-reward').hidden = true;
   $('ov-title').textContent = title;
   $('ov-sub').textContent = sub;
@@ -321,11 +323,31 @@ function showWin(stars, prev) {
   $('finale').hidden = true;
   const sub = st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
   // после ежедневного «Дальше» ведёт к основному пути
-  showOverlay(t('starTitles')[stars], sub, t('next'), () => startLevel(st.daily ? progress : st.level + 1), stars);
+  const doneLevel = st.level;
+  showOverlay(t('starTitles')[stars], sub, t('next'), () => {
+    // иногда реклама между уровнями (не раньше 10-го, не чаще раза в 3; SPEC §8), потом следующий уровень
+    betweenLevels(st.daily ? 0 : doneLevel).finally(() => startLevel(st.daily ? progress : doneLevel + 1));
+  }, stars);
   const icons = { hint: '🔍', eraser: '🧽', life: '♥' };
   const got = st.winGot || [];
   $('ov-reward').hidden = !got.length;
   $('ov-reward').textContent = got.length ? t('reward', got.map((k) => '+1 ' + icons[k]).join('  ')) : '';
+  // удвоить награду за ролик (только в приложении, по желанию)
+  if (got.length && adsReady()) {
+    $('ov-ad').hidden = false;
+    $('ov-ad').textContent = t('adDouble');
+    $('ov-ad').onclick = async () => {
+      $('ov-ad').hidden = true;
+      if (!(await showRewarded())) return;
+      const set = {};
+      for (const k of got) set[k] = (set[k] || 0) + 1;
+      const more = grantSet(boost, set);
+      saveBoost();
+      updateHud();
+      sfx.hint();
+      $('ov-reward').textContent = t('reward', [...got, ...more].map((k) => '+1 ' + icons[k]).join('  '));
+    };
+  }
   confetti(stars);
 }
 
@@ -368,6 +390,21 @@ function lose() {
       updateHud();
     };
   }
+  // «Продолжить» за ролик (только в приложении): +1 жизнь, как бустер, но бесплатно
+  if (adsReady()) {
+    $('ov-ad').hidden = false;
+    $('ov-ad').textContent = t('adContinue');
+    $('ov-ad').onclick = async () => {
+      if (!(await showRewarded())) return;
+      st.usedLife = true;
+      sfx.hint();
+      st.lives = 1;
+      st.over = false;
+      st.loseAt = 0;
+      closeOverlay();
+      updateHud();
+    };
+  }
 }
 
 
@@ -380,6 +417,7 @@ initInput(st, canvas, (p) => (st.mode === 'erase' ? erase(p) : tap(p)));
 initBoostersUI({ st, boost, saveBoost, updateHud });
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
+initAds();
 
 $('restart').addEventListener('click', () => {
   unlock();

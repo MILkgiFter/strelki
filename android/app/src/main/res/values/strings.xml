@@ -4,4 +4,6 @@
     <string name="title_activity_main">Стрелки</string>
     <string name="package_name">io.github.milkgifter.strelki</string>
     <string name="custom_url_scheme">io.github.milkgifter.strelki</string>
+    <!-- AdMob: приложение «Стрелки» в аккаунте пользователя (то же, что ADS.real.appId в src/config.js) -->
+    <string name="admob_app_id">ca-app-pub-7222055770291725~5642118498</string>
 </resources>
