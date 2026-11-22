@@ -16,8 +16,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Подпись выпуска (п. 12.7): ключ android/upload-key.jks (не в git), пароль — из переменной окружения,
+    // которую ставит tools/build-release.ps1 скрытым вводом; на диске пароль не хранится
+    signingConfigs {
+        release {
+            storeFile file('../upload-key.jks')
+            storePassword System.getenv('STRELKI_KEY_PASS')
+            keyAlias 'upload'
+            keyPassword System.getenv('STRELKI_KEY_PASS')
+        }
+    }
     buildTypes {
         release {
+            signingConfig System.getenv('STRELKI_KEY_PASS') ? signingConfigs.release : null
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
