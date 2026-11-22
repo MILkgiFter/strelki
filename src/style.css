@@ -323,7 +323,8 @@ body.coaching .boost:not(.boost-ghost) { animation: boost-pulse .9s ease-in-out 
 .hud-bottom { gap: 10px; }
 
 .toast {
-  position: fixed; left: 50%; top: calc(96px + var(--safe-t)); transform: translateX(-50%); z-index: 4;
+  /* внизу над бустерами (вверху перекрывала заголовок финала и подсказки), поверх всех окон */
+  position: fixed; left: 50%; bottom: calc(112px + var(--safe-b)); transform: translateX(-50%); z-index: 9;
   background: #2E2A24; color: #F4F1EA; font-size: 15px; font-weight: 600;
   padding: 10px 16px; border-radius: 14px; width: max-content; max-width: calc(100vw - 32px); text-align: center;
   box-shadow: 0 6px 16px rgba(46,42,36,.25); animation: fade .2s ease-out; pointer-events: none;
