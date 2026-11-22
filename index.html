@@ -61,6 +61,18 @@
     </div>
   </div>
 
+  <div class="overlay" id="looks" hidden>
+    <div class="card card-streak card-looks">
+      <div class="card-title" data-i18n="looks">Оформление</div>
+      <div class="card-sub"><span data-i18n="looksSub">Открывается за звёзды</span> · <b id="looks-stars"></b></div>
+      <div class="looks-h" data-i18n="looksThemes">Тема</div>
+      <div class="looks-grid" id="looks-themes"></div>
+      <div class="looks-h" data-i18n="looksSkins">Стрелки</div>
+      <div class="looks-grid" id="looks-skins"></div>
+      <button class="btn btn-ghost looks-cb" id="looks-cb">👁 <span data-i18n="cbSwitch">Режим для дальтоников</span></button>
+      <button class="link-btn" id="looks-close" data-i18n="streakOk">Отлично</button>
+    </div>
+  </div>
   <div class="overlay" id="tasks" hidden>
     <div class="card card-streak">
       <div class="card-title" data-i18n="tasksTitle">Задания</div>
@@ -108,12 +120,15 @@
     <div class="menu-stars" id="menu-stars">★ 0</div>
     <div class="menu-buttons">
       <button class="btn btn-big" id="play"><span data-i18n="play">Играть</span> <span class="btn-note" id="play-level">уровень 1</span></button>
-      <button class="btn btn-ghost btn-big" id="open-daily"><span data-i18n="daily">Ежедневный</span> <span class="btn-note" id="daily-note"></span></button>
-      <button class="btn btn-ghost btn-big" id="open-levels" data-i18n="levels">Уровни</button>
-      <button class="btn btn-ghost btn-big" id="open-album" data-i18n="album">Альбом</button>
-      <button class="btn btn-ghost btn-big" id="open-tasks"><span data-i18n="tasksTitle">Задания</span> <span class="btn-note" id="tasks-note"></span></button>
-      <button class="btn btn-ghost btn-big" id="open-streak"><span data-i18n="streakTitle">Подарок дня</span> <span class="btn-note" id="streak-note"></span></button>
-      <button class="btn btn-ghost btn-big" id="theme-btn"><span id="theme-name"></span> <span class="btn-note" id="theme-note"></span></button>
+    </div>
+    <!-- плитки: одна большая «Играть» сверху, остальное — сетка 3×2, точка на плитке — есть награда -->
+    <div class="menu-grid">
+      <button class="mtile" id="open-daily"><span class="mt-i">📅</span><span class="mt-l" data-i18n="daily">Ежедневный</span><span class="mt-n" id="daily-note"></span></button>
+      <button class="mtile" id="open-tasks"><span class="mt-i">✅</span><span class="mt-l" data-i18n="tasksTitle">Задания</span><span class="mt-n" id="tasks-note"></span></button>
+      <button class="mtile" id="open-streak"><span class="mt-i">🎁</span><span class="mt-l" data-i18n="streakTile">Подарок</span><span class="mt-n" id="streak-note"></span></button>
+      <button class="mtile" id="open-levels"><span class="mt-i">🔢</span><span class="mt-l" data-i18n="levels">Уровни</span><span class="mt-n"></span></button>
+      <button class="mtile" id="open-album"><span class="mt-i">🖼️</span><span class="mt-l" data-i18n="album">Альбом</span><span class="mt-n"></span></button>
+      <button class="mtile" id="theme-btn"><span class="mt-i">🎨</span><span class="mt-l" data-i18n="looks">Оформление</span><span class="mt-n" id="theme-note"></span></button>
     </div>
   </section>
 

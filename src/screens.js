@@ -1,5 +1,5 @@
 // Экраны и настройки вида: меню, выбор уровня, альбом, тема (светлая / неон за ★), режим для дальтоников.
-import { MENU, COLORS, THEMES, THEME, COLORBLIND } from './config.js';
+import { MENU, COLORS, THEMES, THEME, COLORBLIND, SKINS } from './config.js';
 import { t, shapeName } from './i18n.js';
 import { sfx, unlock } from './sound.js';
 import { shapeFor } from './level.js';
@@ -14,28 +14,71 @@ let st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalS
 let progress = () => 1;
 let bestStars = () => ({});
 
-// ---------- тема оформления ----------
-const neonOpen = () => IS_ADMIN || totalStars() >= THEME.neonStars;
+// ---------- оформление: тема, скин стрелок, режим для дальтоников (п. 12.3) ----------
 let theme = 'light';
+let skin = 'normal';
 let colorblind = false;
+const isOpen = (item) => IS_ADMIN || totalStars() >= item.stars;
+const themeItem = (id) => THEME.list.find((x) => x.id === id);
+const skinItem = (id) => SKINS.list.find((x) => x.id === id);
 function loadTheme() {
-  theme = load(THEME.key, 'light') === 'neon' && neonOpen() ? 'neon' : 'light';
+  const th = themeItem(load(THEME.key, 'light'));
+  theme = th && isOpen(th) ? th.id : 'light';
+  const sk = skinItem(load(SKINS.key, 'normal'));
+  skin = sk && isOpen(sk) ? sk.id : 'normal';
   colorblind = load(COLORBLIND.key, false) === true;
 }
 export function applyTheme(name) {
   theme = name;
-  Object.assign(COLORS, THEMES[name], { snake: [...THEMES[name].snake] });
+  const th = THEMES[name];
+  Object.assign(COLORS, th, { snake: [...th.snake] });
   COLORS.patterns = colorblind;
-  if (colorblind && name === 'light') COLORS.snake = [...COLORBLIND.palette];
+  if (colorblind && !th.dark) COLORS.snake = [...COLORBLIND.palette];
+  const sk = skinItem(skin) || SKINS.list[0];
+  COLORS.lineScale = sk.width;
+  COLORS.hollow = sk.hollow;
   document.documentElement.classList.toggle('cb', colorblind);
-  document.documentElement.dataset.theme = name;
+  // тёмные темы делят тёмное оформление интерфейса (CSS html[data-theme="neon"])
+  document.documentElement.dataset.theme = th.dark ? 'neon' : 'light';
+  document.documentElement.dataset.look = name;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS.bg);
 }
-// ---------- тема и режим для дальтоников ----------
 function updateThemeButton() {
-  $('theme-name').textContent = t(theme === 'neon' ? 'themeNeon' : 'themeLight');
-  $('theme-note').textContent = neonOpen() ? t('themeSwitch') : t('themeLocked', THEME.neonStars);
+  const all = [...THEME.list, ...SKINS.list];
+  $('theme-note').textContent = `${all.filter(isOpen).length}/${all.length}`;
 }
+// превью темы: фон и три линии её цветов; скина — линия выбранной толщины
+function looksCard(kind, item) {
+  const open = isOpen(item);
+  const sel = kind === 'theme' ? theme === item.id : skin === item.id;
+  const b = document.createElement('button');
+  b.className = 'look' + (sel ? ' on' : '') + (open ? '' : ' locked');
+  b.dataset.kind = kind;
+  b.dataset.id = item.id;
+  const th = kind === 'theme' ? THEMES[item.id] : THEMES[theme];
+  const cols = th.snake.slice(0, 3);
+  const sk = kind === 'skin' ? item : skinItem(skin);
+  const w = 6 * sk.width;
+  const lines = cols
+    .map((c, i) => `<line x1="10" y1="${12 + i * 12}" x2="70" y2="${12 + i * 12}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>` +
+      (sk.hollow ? `<line x1="10" y1="${12 + i * 12}" x2="70" y2="${12 + i * 12}" stroke="${th.bg}" stroke-width="${w * sk.hollow}" stroke-linecap="round"/>` : ''))
+    .join('');
+  b.innerHTML = `<svg viewBox="0 0 80 48" class="look-prev" style="background:${th.bg}">${lines}</svg>
+    <span class="look-name">${t((kind === 'theme' ? 'theme_' : 'skin_') + item.id)}</span>
+    <span class="look-note">${sel ? '✓' : open ? '' : '🔒 ' + item.stars + ' ★'}</span>`;
+  return b;
+}
+function renderLooks() {
+  $('looks-stars').textContent = `★ ${totalStars()}`;
+  const th = $('looks-themes');
+  th.innerHTML = '';
+  THEME.list.forEach((x) => th.appendChild(looksCard('theme', x)));
+  const sk = $('looks-skins');
+  sk.innerHTML = '';
+  SKINS.list.forEach((x) => sk.appendChild(looksCard('skin', x)));
+  $('looks-cb').classList.toggle('on', colorblind);
+}
+
 // ---------- экраны ----------
 export function hideScreens() {
   $('menu').hidden = true;
@@ -51,7 +94,8 @@ export function showMenu() {
   $('menu-stars').textContent = totalStars() ? `★ ${totalStars()}` : '';
   closeOverlay(); // после победы/поражения «Играть» всё равно начинает уровень заново
   $('play-level').textContent = t('playLevel', st.over || st.daily ? progress() : st.level);
-  $('daily-note').textContent = dailyDoneToday() ? t('dailyDoneNote') : t('dailyNote');
+  $('daily-note').textContent = dailyDoneToday() ? '✓' : t('dailyNew');
+  $('open-daily').classList.toggle('ready', !dailyDoneToday());
   updateThemeButton();
   maybeShowStreak();
   updateTasksButton();
@@ -130,11 +174,33 @@ export function initScreens(api) {
   $('theme-btn').addEventListener('click', () => {
     unlock();
     sfx.click();
-    if (!neonOpen()) return toast(t('themeLocked', THEME.neonStars));
-    applyTheme(theme === 'neon' ? 'light' : 'neon');
-    save(THEME.key, theme);
+    renderLooks();
+    $('looks').hidden = false;
+  });
+  $('looks-close').addEventListener('click', () => {
+    sfx.click();
+    $('looks').hidden = true;
+  });
+  $('looks').addEventListener('click', (e) => {
+    const b = e.target.closest('.look');
+    if (!b) return;
+    unlock();
+    const list = b.dataset.kind === 'theme' ? THEME.list : SKINS.list;
+    const item = list.find((x) => x.id === b.dataset.id);
+    if (!isOpen(item)) return toast(t('looksLocked', item.stars));
+    sfx.click();
+    if (b.dataset.kind === 'theme') {
+      theme = item.id;
+      save(THEME.key, theme);
+    } else {
+      skin = item.id;
+      save(SKINS.key, skin);
+    }
+    applyTheme(theme);
+    renderLooks();
     updateThemeButton();
   });
+  $('looks-cb').addEventListener('click', () => $('cb').click());
 
   $('cb').addEventListener('click', () => {
     unlock();
@@ -142,6 +208,7 @@ export function initScreens(api) {
     colorblind = !colorblind;
     save(COLORBLIND.key, colorblind);
     applyTheme(theme);
+    if (!$('looks').hidden) renderLooks();
     toast(t(colorblind ? 'cbOn' : 'cbOff'));
   });
 

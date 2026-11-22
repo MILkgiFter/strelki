@@ -64,7 +64,7 @@ export function view(w, h, st) {
   };
 }
 
-const lineWidth = (cell) => Math.min(SNAKE.maxWidthPx, Math.max(SNAKE.minWidthPx, cell * SNAKE.width));
+const lineWidth = (cell) => Math.min(SNAKE.maxWidthPx, Math.max(SNAKE.minWidthPx, cell * SNAKE.width)) * (COLORS.lineScale || 1);
 
 // easing back-out: 0→1 с перелётом за 1
 function backOut(t, s) {
@@ -132,6 +132,13 @@ function drawSnake(ctx, L, pts, dir, color, width, alpha) {
   if (dash && dash.length) ctx.setLineDash(dash.map((d) => d * width));
   if (body) ctx.stroke(body);
   if (dash && dash.length) ctx.setLineDash([]);
+  // скин «трубка»: середина линии цветом фона — полая линия
+  if (COLORS.hollow > 0 && body) {
+    ctx.strokeStyle = COLORS.bg;
+    ctx.lineWidth = width * COLORS.hollow;
+    ctx.stroke(body);
+    ctx.strokeStyle = color;
+  }
   ctx.lineWidth = width * 0.35;
   ctx.fill(head);
   ctx.stroke(head);
@@ -288,7 +295,7 @@ function snakeLayer(ctx, st, L, w, h, lw, live) {
   const cw = Math.ceil((w + m * 2) * dpr);
   const ch = Math.ceil(h * dpr);
   if (!(cw >= 1 && ch >= 1)) return null;
-  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${COLORS.glow}|${COLORS.patterns}|${live.map((p) => p.id).join(',')}`;
+  const key = `${st.level}|${st.bornT}|${cw}x${ch}|${dpr}|${L.x}|${L.y}|${L.cell}|${COLORS.snake[0]}|${COLORS.glow}|${COLORS.patterns}|${COLORS.lineScale}|${COLORS.hollow}|${live.map((p) => p.id).join(',')}`;
   let c = layers.get(ctx);
   if (c && c.key === key && c.list === st.list) return c.canvas;
   if (!c || c.canvas.width !== cw || c.canvas.height !== ch) {

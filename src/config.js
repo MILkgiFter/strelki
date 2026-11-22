@@ -404,7 +404,9 @@ export const COLORS = {
   dir: { U: '#5B7FFF', R: '#FF7A59', D: '#2BB673', L: '#A76BFF' },
   glow: 0, // свечение линий (неоновая тема): ширина ореола от толщины линии
   glowAlpha: 0,
-  patterns: false, // узоры линий по цвету (режим для дальтоников, включает main.js)
+  patterns: false, // узоры линий по цвету (режим для дальтоников, включает screens.js)
+  lineScale: 1, // толщина линии от скина (SKINS)
+  hollow: 0, // «трубка»: доля толщины, вырезанная фоном посередине
 };
 
 // Темы оформления (п. 10.2): COLORS — текущая тема, на старте и при переключении
@@ -428,6 +430,41 @@ export const THEMES = {
     dir: { U: '#4DD8FF', R: '#FF4D8D', D: '#5CFF7A', L: '#C76BFF' },
     glow: 1.6,
     glowAlpha: 0.22,
+    dark: true,
+  },
+  // «Доска»: мел на тёмно-зелёной доске (п. 12.3)
+  chalk: {
+    ...COLORS,
+    bg: '#22352B',
+    board: '#2A4134',
+    albumLocked: '#34503F',
+    cell: '#2E4638',
+    text: '#EEF1E8',
+    muted: '#9DB3A5',
+    heartEmpty: '#3E5A49',
+    dot: '#3E5A49',
+    stone: '#5E7568',
+    stoneLight: '#7D9486',
+    stoneShade: '#3E5247',
+    snake: ['#F4F1E6', '#F7C59F', '#A8DADC', '#FFE66D', '#E5B3FE'],
+    dir: { U: '#A8DADC', R: '#F7C59F', D: '#FFE66D', L: '#E5B3FE' },
+    glow: 0.5,
+    glowAlpha: 0.12,
+    dark: true,
+  },
+  // «Закат»: тёплая светлая палитра (п. 12.3)
+  sunset: {
+    ...COLORS,
+    bg: '#FFF1E6',
+    board: '#FBE1CF',
+    albumLocked: '#F0CDB6',
+    cell: '#FDE8DA',
+    dot: '#EBC3AA',
+    stone: '#C9A58E',
+    stoneLight: '#DDBFAB',
+    stoneShade: '#AE8A74',
+    snake: ['#E76F51', '#2A9D8F', '#F4A261', '#9B5DE5', '#E9C46A'],
+    dir: { U: '#2A9D8F', R: '#E76F51', D: '#E9C46A', L: '#9B5DE5' },
   },
 };
 // Режим для дальтоников (п. 10.4): у каждого цвета свой узор линии; в светлой теме — палитра Okabe–Ito
@@ -440,5 +477,22 @@ export const COLORBLIND = {
 
 export const THEME = {
   key: 'strelki.theme',
-  neonStars: 30, // неоновая тема открывается за столько звёзд
+  // темы по порядку и сколько ★ нужно, чтобы открыть (экран «Оформление», п. 12.3)
+  list: [
+    { id: 'light', stars: 0 },
+    { id: 'sunset', stars: 15 },
+    { id: 'neon', stars: 30 },
+    { id: 'chalk', stars: 60 },
+  ],
+};
+
+// Скины стрелок (п. 12.3): толщина линии и «трубка» (полая середина); открываются за ★
+export const SKINS = {
+  key: 'strelki.skin',
+  list: [
+    { id: 'normal', stars: 0, width: 1, hollow: 0 },
+    { id: 'thin', stars: 10, width: 0.7, hollow: 0 },
+    { id: 'bold', stars: 25, width: 1.35, hollow: 0 },
+    { id: 'tube', stars: 45, width: 1.4, hollow: 0.45 },
+  ],
 };
