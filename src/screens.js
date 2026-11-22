@@ -124,7 +124,7 @@ function albumEntries() {
 }
 const REWARD_ICONS = { hint: '🔍', eraser: '🧽', life: '♥' };
 const rewardText = (r) => Object.entries(r).map(([k, n]) => `${REWARD_ICONS[k]}${n > 1 ? '×' + n : ''}`).join(' ');
-const albumOpen = (e) => e.n < progress() || Number(bestStars()[e.n]) > 0;
+const albumOpen = (e) => e.n < progress() || Number(bestStars()[e.n]) > 0 || (IS_ADMIN && e.n <= progress());
 const openShapes = () => new Set(albumEntries().filter(albumOpen).map((e) => e.shape.id));
 // точка на плитке «Альбом»: есть собранный, но не забранный набор
 export function updateAlbumTile() {

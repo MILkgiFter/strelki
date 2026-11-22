@@ -194,7 +194,10 @@ function showOverlay(title, sub, btn, action, stars = 0) {
   $('ov-title').textContent = title;
   $('ov-sub').textContent = sub;
   $('ov-btn').textContent = btn;
+  let used = false; // одно нажатие на окно: двойной тап (и тап во время рекламы) не запускает действие дважды
   $('ov-btn').onclick = () => {
+    if (used) return;
+    used = true;
     sfx.click();
     action();
   };
@@ -326,7 +329,7 @@ function showWin(stars, prev) {
   // после ежедневного «Дальше» ведёт к основному пути
   const doneLevel = st.level;
   showOverlay(t('starTitles')[stars], sub, t('next'), () => {
-    // иногда реклама между уровнями (не раньше 10-го, не чаще раза в 3; SPEC §8), потом следующий уровень
+    // иногда реклама между уровнями (с 10-го, не чаще раза в 2 уровня и 90 с; SPEC §8), потом следующий уровень
     betweenLevels(st.daily ? 0 : doneLevel).finally(() => startLevel(st.daily ? progress : doneLevel + 1));
   }, stars);
   const icons = { hint: '🔍', eraser: '🧽', life: '♥' };
@@ -396,7 +399,11 @@ function lose() {
     $('ov-ad').hidden = false;
     $('ov-ad').textContent = t('adContinue');
     $('ov-ad').onclick = async () => {
-      if (!(await showRewarded())) return;
+      $('ov-ad').hidden = true; // пока идёт ролик — второй не запустить
+      if (!(await showRewarded())) {
+        $('ov-ad').hidden = false;
+        return;
+      }
       st.usedLife = true;
       sfx.hint();
       st.lives = 1;

@@ -6,6 +6,9 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 if (-not (Test-Path 'android\upload-key.jks')) { throw 'Нет ключа: сначала .\tools\make-upload-key.ps1' }
 
+if (Select-String -Path 'src\config.js' -Pattern 'testing: true' -Quiet) {
+  Write-Host 'ВНИМАНИЕ: ADS.testing = true — в сборке тестовая реклама Google (без дохода). Для выпуска в открытый доступ поставь testing: false.' -ForegroundColor Yellow
+}
 $sec = Read-Host 'Пароль ключа подписи' -AsSecureString
 $env:STRELKI_KEY_PASS = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
 $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'

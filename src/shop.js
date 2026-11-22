@@ -39,7 +39,23 @@ export function flagOn(flag) {
 let store = null;
 let api = null; // { grant(boosters), onChange() }
 let ready = false;
-const delivered = new Set(); // транзакции, уже выданные за этот запуск
+const DONE_KEY = 'strelki.txDone'; // id выданных транзакций (последние 50) — переживают перезапуск
+function loadDone() {
+  try {
+    const a = JSON.parse(localStorage.getItem(DONE_KEY));
+    return new Set(Array.isArray(a) ? a : []);
+  } catch {
+    return new Set();
+  }
+}
+const delivered = loadDone();
+function saveDone() {
+  try {
+    localStorage.setItem(DONE_KEY, JSON.stringify([...delivered].slice(-50)));
+  } catch {
+    /* хранилище недоступно — защита только на этот запуск */
+  }
+}
 
 export const shopReady = () => ready;
 
@@ -47,6 +63,7 @@ function deliver(productId, txId) {
   const key = productId + ':' + (txId || '');
   if (delivered.has(key)) return;
   delivered.add(key);
+  saveDone();
   const { boosters, flags } = grantsFor(productId);
   flags.forEach(setFlag);
   if (Object.keys(boosters).length) api.grant(boosters);

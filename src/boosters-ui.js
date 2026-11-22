@@ -89,6 +89,7 @@ export function noBoost(kind) {
   $('adoffer').hidden = false;
   $('adoffer-no').onclick = () => ($('adoffer').hidden = true);
   $('adoffer-watch').onclick = async () => {
+    if ($('adoffer').hidden) return; // уже нажато — ролик идёт
     $('adoffer').hidden = true;
     if (!(await showRewarded())) return;
     grantSet(boost, { [kind]: 1 });
