@@ -61,6 +61,15 @@
     </div>
   </div>
 
+  <div class="overlay" id="tasks" hidden>
+    <div class="card card-streak">
+      <div class="card-title" data-i18n="tasksTitle">Задания</div>
+      <div class="card-sub" data-i18n="tasksSub">Новые каждый день</div>
+      <div class="tasks-list" id="tasks-list"></div>
+      <div class="card-sub" id="tasks-bonus"></div>
+      <button class="link-btn" id="tasks-close" data-i18n="streakOk">Отлично</button>
+    </div>
+  </div>
   <div class="overlay" id="streak" hidden>
     <div class="card card-streak">
       <div class="card-title" data-i18n="streakTitle">Подарок дня</div>
@@ -102,6 +111,7 @@
       <button class="btn btn-ghost btn-big" id="open-daily"><span data-i18n="daily">Ежедневный</span> <span class="btn-note" id="daily-note"></span></button>
       <button class="btn btn-ghost btn-big" id="open-levels" data-i18n="levels">Уровни</button>
       <button class="btn btn-ghost btn-big" id="open-album" data-i18n="album">Альбом</button>
+      <button class="btn btn-ghost btn-big" id="open-tasks"><span data-i18n="tasksTitle">Задания</span> <span class="btn-note" id="tasks-note"></span></button>
       <button class="btn btn-ghost btn-big" id="open-streak"><span data-i18n="streakTitle">Подарок дня</span> <span class="btn-note" id="streak-note"></span></button>
       <button class="btn btn-ghost btn-big" id="theme-btn"><span id="theme-name"></span> <span class="btn-note" id="theme-note"></span></button>
     </div>

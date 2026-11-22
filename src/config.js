@@ -232,6 +232,27 @@ export const STREAK = {
   showDelayMs: 450, // окно подарка всплывает в меню чуть позже, чтобы меню успело появиться
 };
 
+// Ежедневные задания (п. 12.2): 3 в день из пула (по номеру дня — одинаковые у всех в этот день).
+// kind: wins — пройти уровни, perfect — без ошибок, arrows — выпустить стрелки, daily — ежедневный уровень,
+// noBoost — пройти без бустеров, big — большой/огромный/гигантский уровень, stars — собрать звёзды
+export const TASKS = {
+  key: 'strelki.tasks', // { day, prog: { id: n }, got: { id: true }, bonus: bool }
+  perDay: 3,
+  bonus: { hint: 1, eraser: 1, life: 1 }, // за все 3 задания дня
+  pool: [
+    { id: 'wins2', kind: 'wins', goal: 2, reward: { hint: 1 } },
+    { id: 'wins3', kind: 'wins', goal: 3, reward: { eraser: 1 } },
+    { id: 'perfect1', kind: 'perfect', goal: 1, reward: { life: 1 } },
+    { id: 'arrows150', kind: 'arrows', goal: 150, reward: { hint: 1 } },
+    { id: 'arrows300', kind: 'arrows', goal: 300, reward: { hint: 1, eraser: 1 } },
+    { id: 'daily1', kind: 'daily', goal: 1, reward: { eraser: 1 } },
+    { id: 'noBoost1', kind: 'noBoost', goal: 1, reward: { hint: 1 } },
+    { id: 'big1', kind: 'big', goal: 1, reward: { life: 1 } },
+    { id: 'stars6', kind: 'stars', goal: 6, reward: { hint: 1, life: 1 } },
+  ],
+  bigTags: ['big', 'huge', 'mega'],
+};
+
 export const BOOSTERS = {
   start: { hint: 3, eraser: 2, life: 2 },
   max: 99,

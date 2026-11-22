@@ -7,6 +7,7 @@ import { drawSilhouette } from './render.js';
 import { IS_ADMIN, $, load, save } from './store.js';
 import { toast, setMode } from './boosters-ui.js';
 import { maybeShowStreak } from './streak-ui.js';
+import { updateTasksButton } from './tasks-ui.js';
 
 // всё, что принадлежит main.js: состояние, прогресс, запуск уровней (progress и звёзды — через функции, они меняются)
 let st, startLevel, startDaily, closeOverlay, closeCoach, dailyDoneToday, totalStars;
@@ -53,6 +54,7 @@ export function showMenu() {
   $('daily-note').textContent = dailyDoneToday() ? t('dailyDoneNote') : t('dailyNote');
   updateThemeButton();
   maybeShowStreak();
+  updateTasksButton();
   $('levels').hidden = true;
   $('album').hidden = true;
   $('menu').hidden = false;

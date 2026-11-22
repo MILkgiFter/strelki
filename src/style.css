@@ -425,3 +425,21 @@ html[data-theme="neon"] .sd-gift { color: #ECEAF6; }
 html[data-theme="neon"] .sd.done { background: #173326; }
 html[data-theme="neon"] .sd.now { background: #3A3520; }
 #streak { z-index: 7; } /* поверх экрана меню (z 6) */
+
+/* задания дня (п. 12.2) */
+#tasks { z-index: 7; }
+.tasks-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 10px; text-align: left; }
+.task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: #F4F1EA; }
+.task-text { flex: 1; min-width: 0; }
+.task-name { font-weight: 700; font-size: 15px; }
+.task-bar { height: 6px; border-radius: 3px; background: #E7E1D5; margin: 6px 0 4px; overflow: hidden; }
+.task-bar i { display: block; height: 100%; background: #FFB020; border-radius: 3px; }
+.task.done .task-bar i, .task.got .task-bar i { background: #2BB673; }
+.task-n { font-size: 12px; color: #8A8275; }
+.task-ok { font-size: 22px; color: #2BB673; font-weight: 800; }
+.btn.task-claim { padding: 8px 14px; font-size: 15px; }
+#open-tasks.ready { outline: 3px solid #FFB020; }
+html[data-theme="neon"] .task { background: #1B1D2C; }
+html[data-theme="neon"] .task-bar { background: #2C2F48; }
+/* меню с кнопками заданий и подарка не помещается на низких экранах — прокрутка, центр без обрезки */
+#menu { overflow-y: auto; justify-content: safe center; touch-action: pan-y; }

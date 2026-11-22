@@ -35,6 +35,7 @@ export function setMode(mode) {
 export function erase(piece) {
   if (st.bumps.has(piece.id)) return; // стрелка ещё в отскоке — как и обычный тап
   if (!spend(boost, 'eraser')) return setMode(null);
+  st.usedBoost = true;
   saveBoost();
   removePiece(st.grid, piece);
   st.list = st.list.filter((q) => q !== piece);
@@ -48,6 +49,8 @@ export function useLife() {
   if (st.over) return;
   if (st.lives >= GAME.lives) return toast(t('lifeFull'));
   if (!spend(boost, 'life')) return toast(t('noBoost'));
+  st.usedBoost = true;
+  st.usedLife = true;
   saveBoost();
   st.lives++;
   sfx.hint();
@@ -60,6 +63,7 @@ export function useHint() {
   const piece = findFree(st.grid, st.w, st.h);
   if (!piece) return;
   spend(boost, 'hint');
+  st.usedBoost = true;
   saveBoost();
   st.hint = { id: piece.id, t0: performance.now() };
   // на приближенном или сдвинутом поле подсказанная змейка может быть за краем экрана — подводим камеру

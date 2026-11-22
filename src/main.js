@@ -11,6 +11,7 @@ import { initInput } from './input.js';
 import { initBoostersUI, setMode, erase } from './boosters-ui.js';
 import { initScreens, showMenu, showLevels, hideScreens } from './screens.js';
 import { initStreakUI } from './streak-ui.js';
+import { initTasksUI, tasksOnEvent } from './tasks-ui.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -144,6 +145,8 @@ function startLevel(n, daily = false) {
     tutorial: t('tutorial')[n] || '',
     bornT: performance.now(), // старт анимации появления
     touched: false, // был ли хоть один тап
+    usedBoost: false, // для задания «без бустеров»
+    usedLife: false, // +1 жизнь — уровень уже не «без ошибок»
   });
   st.full = st.list; // вся картинка — для финала
   st.bumps.clear();
@@ -236,6 +239,7 @@ function tap(piece) {
     st.combo = now - st.comboT < SOUND.comboWindowMs ? st.combo + 1 : 0;
     st.comboT = now;
     sfx.fly(st.combo, piece.len);
+    tasksOnEvent({ type: 'arrow', n: 1 });
     return;
   }
 
@@ -292,6 +296,7 @@ function win() {
   }
   saveBoost();
   updateHud();
+  tasksOnEvent({ type: 'win', perfect: st.lives >= GAME.lives && !st.usedLife, daily: st.daily, usedBoost: !!st.usedBoost, tag: st.tag, stars: st.daily ? 0 : stars });
   sfx.win();
   // финал: картинка собирается заново целиком, над ней — название; окно победы — следом
   const name = shapeName(st.shape);
@@ -349,6 +354,8 @@ function lose() {
     $('ov-continue').textContent = t('continueLife', boost.life - 1);
     $('ov-continue').onclick = () => {
       if (!spend(boost, 'life')) return;
+      st.usedBoost = true;
+      st.usedLife = true;
       saveBoost();
       sfx.hint();
       st.lives = 1;
@@ -369,6 +376,7 @@ initCamera(st, canvas);
 initInput(st, canvas, (p) => (st.mode === 'erase' ? erase(p) : tap(p)));
 initBoostersUI({ st, boost, saveBoost, updateHud });
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
+initTasksUI({ boost: () => boost, saveBoost, updateHud });
 
 $('restart').addEventListener('click', () => {
   unlock();
