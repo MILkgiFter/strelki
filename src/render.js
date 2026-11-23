@@ -74,7 +74,7 @@ function backOut(t, s) {
 
 // pts — ломаная в координатах клеток (от хвоста к голове), dir — куда смотрит наконечник
 function drawSnake(ctx, L, pts, dir, color, width, alpha) {
-  if (alpha <= 0) return;
+  if (alpha <= 0 || !pts || !pts.length) return;
   const { cell } = L;
   const px = [];
   for (const [x, y] of pts) {
@@ -374,92 +374,98 @@ export function render(ctx, w, h, st, now) {
   if (shakeT >= 0 && shakeT < 1) sx = Math.sin(shakeT * Math.PI * 6) * ANIM.shakePx * (1 - shakeT);
 
   ctx.save();
-  // приближенное или сдвинутое поле не залезает под HUD
-  ctx.beginPath();
-  ctx.rect(0, L.top, w, L.bottom - L.top);
-  ctx.clip();
-  ctx.translate(sx, 0);
+  // restore — всегда: исключение посреди кадра иначе оставит обрезку навсегда (края холста перестают
+  // перерисовываться — после смены темы сверху и снизу оставалась полоса старого цвета)
+  try {
+    // приближенное или сдвинутое поле не залезает под HUD
+    ctx.beginPath();
+    ctx.rect(0, L.top, w, L.bottom - L.top);
+    ctx.clip();
+    ctx.translate(sx, 0);
 
-  // силуэт поля и точки клеток — неподвижны, рисуются один раз в отдельный холст
-  if (st.showBg !== false) {
-    const bg = background(ctx, st, L);
-    if (bg) ctx.drawImage(bg.canvas, L.x - bg.pad * L.zoom, L.y - bg.pad * L.zoom, bg.cw * L.zoom, bg.ch * L.zoom);
-  }
-  drawStones(ctx, L, st, now);
-
-  // пока горит подсказка, остальные змейки приглушены
-  let dimK = 0;
-  if (st.hint) {
-    const ht = now - st.hint.t0;
-    dimK = Math.max(0, Math.min(1, ht / ANIM.hintFadeMs, (ANIM.hintShowMs - ht) / ANIM.hintFadeMs));
-  }
-  const othersAlpha = 1 - (1 - ANIM.hintDim) * dimK;
-  const pressId = st.press ? st.press.id : -1;
-  const diag = st.w + st.h;
-  const isLive = (p) => st.bumps.has(p.id) || st.pops.has(p.id) || p.id === pressId || (st.hint && st.hint.id === p.id);
-
-  // Неподвижные змейки лежат в отдельном холсте и перерисовываются, только когда меняется
-  // их набор или камера; каждый кадр рисуются лишь «живые» (отскок, нажатие, подсказка).
-  // Во время волны появления и для разовых отрисовок (фон заставки) — всё напрямую.
-  const appearing = now - (st.bornT || 0) < ANIM.appearTotalMs + ANIM.appearMs;
-  let list;
-  if (!appearing && !st.transparent) {
-    const live = st.list.filter(isLive);
-    const layer = snakeLayer(ctx, st, L, w, h, lw, live);
-    if (layer) {
-      ctx.globalAlpha = othersAlpha;
-      const dpr = ctx.getTransform().a || 1;
-      ctx.drawImage(layer, -ANIM.shakePx, 0, layer.width / dpr, layer.height / dpr); // 1:1 по пикселям
-      ctx.globalAlpha = 1;
-      list = live;
+    // силуэт поля и точки клеток — неподвижны, рисуются один раз в отдельный холст
+    if (st.showBg !== false) {
+      const bg = background(ctx, st, L);
+      if (bg) ctx.drawImage(bg.canvas, L.x - bg.pad * L.zoom, L.y - bg.pad * L.zoom, bg.cw * L.zoom, bg.ch * L.zoom);
     }
-  }
-  // змейки на поле; дёргающиеся и выделенные рисуем последними — поверх соседей
-  if (!list) list = st.list.slice().sort((a, b) => (isLive(a) ? 1 : 0) - (isLive(b) ? 1 : 0));
-  for (const p of list) {
-    const [hx, hy] = cellXY(p.head, st.w);
-    // появление: волна по диагонали, линия «вырастает» с лёгким перелётом
-    const at = (now - (st.bornT || 0) - ((hx + hy) / diag) * ANIM.appearTotalMs) / ANIM.appearMs;
-    if (at <= 0) continue;
-    const grow = at < 1 ? backOut(at, ANIM.appearOvershoot) : 1;
+    drawStones(ctx, L, st, now);
 
-    let s = 0;
-    const bump = st.bumps.get(p.id);
-    if (bump) s = Math.sin(Math.min(1, (now - bump.t0) / bump.dur) * Math.PI) * bump.amount;
-    let width = lw * grow;
-    const pop = st.pops.get(p.id);
-    if (pop) width *= 1 + Math.sin(Math.min(1, (now - pop) / ANIM.popMs) * Math.PI) * 0.3;
-    if (p.id === pressId) width *= SNAKE.pressScale;
-    const isHint = st.hint && st.hint.id === p.id;
-    const alpha = Math.min(1, at * 2) * (isHint ? 1 : othersAlpha);
-    if (isHint) {
-      const pulse = 0.5 + 0.5 * Math.sin(((now - st.hint.t0) / ANIM.hintPulseMs) * Math.PI * 2);
-      width *= 1 + (SNAKE.hintScale - 1) * pulse * dimK;
-      if (!st.hint.key) s += ANIM.hintNudge * pulse * dimK; // «кивок» туда, куда змейка уедет (ключ просто пульсирует)
+    // пока горит подсказка, остальные змейки приглушены
+    let dimK = 0;
+    if (st.hint) {
+      const ht = now - st.hint.t0;
+      dimK = Math.max(0, Math.min(1, ht / ANIM.hintFadeMs, (ANIM.hintShowMs - ht) / ANIM.hintFadeMs));
     }
-    const pts = s > 0 ? windowAt(trajectory(p, st.w, s + 1), s, p.len) : bodyPts(p, st.w);
-    drawSnake(ctx, L, pts, p.dir, COLORS.snake[p.color], width, alpha);
-    drawBadge(ctx, L, pts, p, st.grid, COLORS.snake[p.color], alpha);
-  }
+    const othersAlpha = 1 - (1 - ANIM.hintDim) * dimK;
+    const pressId = st.press ? st.press.id : -1;
+    const diag = st.w + st.h;
+    const isLive = (p) => st.bumps.has(p.id) || st.pops.has(p.id) || p.id === pressId || (st.hint && st.hint.id === p.id);
 
-  // стёртые ластиком: тают на месте — тоньше и прозрачнее
-  for (const e of st.erased || []) {
-    const k = Math.min(1, (now - e.t0) / BOOSTERS.eraseMs);
-    drawSnake(ctx, L, bodyPts(e.piece, st.w), e.piece.dir, COLORS.snake[e.piece.color], lw * (1 + k * 0.6) * (1 - k), 1 - k);
-  }
+    // Неподвижные змейки лежат в отдельном холсте и перерисовываются, только когда меняется
+    // их набор или камера; каждый кадр рисуются лишь «живые» (отскок, нажатие, подсказка).
+    // Во время волны появления и для разовых отрисовок (фон заставки) — всё напрямую.
+    const appearing = now - (st.bornT || 0) < ANIM.appearTotalMs + ANIM.appearMs;
+    let list;
+    if (!appearing && !st.transparent) {
+      const live = st.list.filter(isLive);
+      const layer = snakeLayer(ctx, st, L, w, h, lw, live);
+      if (layer) {
+        ctx.globalAlpha = othersAlpha;
+        const dpr = ctx.getTransform().a || 1;
+        ctx.drawImage(layer, -ANIM.shakePx, 0, layer.width / dpr, layer.height / dpr); // 1:1 по пикселям
+        ctx.globalAlpha = 1;
+        list = live;
+      }
+    }
+    // змейки на поле; дёргающиеся и выделенные рисуем последними — поверх соседей
+    if (!list) list = st.list.slice().sort((a, b) => (isLive(a) ? 1 : 0) - (isLive(b) ? 1 : 0));
+    for (const p of list) {
+      const [hx, hy] = cellXY(p.head, st.w);
+      // появление: волна по диагонали, линия «вырастает» с лёгким перелётом
+      const at = (now - (st.bornT || 0) - ((hx + hy) / diag) * ANIM.appearTotalMs) / ANIM.appearMs;
+      if (at <= 0) continue;
+      const grow = at < 1 ? backOut(at, ANIM.appearOvershoot) : 1;
 
-  // уезжающие змейки: тело ползёт по своему пути, за краем — плавно исчезает
-  for (const f of st.flyers) {
-    const p = f.piece;
-    const color = COLORS.snake[p.color];
-    drawPuff(ctx, L, f, now, color, st.w);
-    const s = ((now - f.t0) / 1000) * f.speed;
-    const alpha = Math.max(0, 1 - Math.max(0, s - f.toEdge) / ANIM.flyFadeCells);
-    if (alpha <= 0) continue;
-    const fp = windowAt(trajectory(p, st.w, s + 1), s, p.len);
-    drawSnake(ctx, L, fp, p.dir, color, lw, alpha);
-    drawBadge(ctx, L, fp, p, null, color, alpha);
-  }
+      let s = 0;
+      const bump = st.bumps.get(p.id);
+      if (bump) s = Math.sin(Math.min(1, (now - bump.t0) / bump.dur) * Math.PI) * bump.amount;
+      let width = lw * grow;
+      const pop = st.pops.get(p.id);
+      if (pop) width *= 1 + Math.sin(Math.min(1, (now - pop) / ANIM.popMs) * Math.PI) * 0.3;
+      if (p.id === pressId) width *= SNAKE.pressScale;
+      const isHint = st.hint && st.hint.id === p.id;
+      const alpha = Math.min(1, at * 2) * (isHint ? 1 : othersAlpha);
+      if (isHint) {
+        const pulse = 0.5 + 0.5 * Math.sin(((now - st.hint.t0) / ANIM.hintPulseMs) * Math.PI * 2);
+        width *= 1 + (SNAKE.hintScale - 1) * pulse * dimK;
+        if (!st.hint.key) s += ANIM.hintNudge * pulse * dimK; // «кивок» туда, куда змейка уедет (ключ просто пульсирует)
+      }
+      const pts = s > 0 ? windowAt(trajectory(p, st.w, s + 1), s, p.len) : bodyPts(p, st.w);
+      drawSnake(ctx, L, pts, p.dir, COLORS.snake[p.color], width, alpha);
+      drawBadge(ctx, L, pts, p, st.grid, COLORS.snake[p.color], alpha);
+    }
 
-  ctx.restore();
+    // стёртые ластиком: тают на месте — тоньше и прозрачнее
+    for (const e of st.erased || []) {
+      const k = Math.min(1, (now - e.t0) / BOOSTERS.eraseMs);
+      drawSnake(ctx, L, bodyPts(e.piece, st.w), e.piece.dir, COLORS.snake[e.piece.color], lw * (1 + k * 0.6) * (1 - k), 1 - k);
+    }
+
+    // уезжающие змейки: тело ползёт по своему пути, за краем — плавно исчезает
+    for (const f of st.flyers) {
+      const p = f.piece;
+      if (!p || !p.cells || !p.cells.length) continue; // не стрелка (камень) — лететь нечему
+      const color = COLORS.snake[p.color];
+      drawPuff(ctx, L, f, now, color, st.w);
+      const s = ((now - f.t0) / 1000) * f.speed;
+      const alpha = Math.max(0, 1 - Math.max(0, s - f.toEdge) / ANIM.flyFadeCells);
+      if (alpha <= 0) continue;
+      const fp = windowAt(trajectory(p, st.w, s + 1), s, p.len);
+      drawSnake(ctx, L, fp, p.dir, color, lw, alpha);
+      drawBadge(ctx, L, fp, p, null, color, alpha);
+    }
+
+  } finally {
+    ctx.restore();
+  }
 }

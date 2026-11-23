@@ -645,6 +645,7 @@ function pointAt(P, t) {
 export function windowAt(P, s, len) {
   const a = s;
   const b = s + len - 1;
+  if (!P.length) return []; // у «стрелки» без клеток (камень) пути нет
   if (P.length < 2) return [P[0].slice()];
   const out = [pointAt(P, a)];
   for (let i = Math.floor(a) + 1; i < b && i < P.length; i++) out.push(P[i].slice());
