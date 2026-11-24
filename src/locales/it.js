@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Strada bloccata: togli prima la freccia che intralcia',
     notifyTitle: 'Il livello del giorno è pronto 🎁',
     notifyBody: 'Ti aspetta una nuova immagine, e anche il regalo del giorno',
+    privacyChoices: 'Impostazioni privacy',
     adDouble: '▶ Raddoppia il premio',
     adContinue: '▶ Continua con un video',
     coll_animals: 'Animali',

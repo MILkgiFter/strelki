@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'रास्ता बंद है — पहले रास्ता रोकने वाला तीर हटाएँ',
     notifyTitle: 'आज का लेवल तैयार है 🎁',
     notifyBody: 'नई तस्वीर और रोज़ का तोहफ़ा आपका इंतज़ार कर रहे हैं',
+    privacyChoices: 'निजता सेटिंग',
     adDouble: '▶ इनाम दोगुना',
     adContinue: '▶ वीडियो देखकर जारी रखें',
     coll_animals: 'जानवर',

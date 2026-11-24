@@ -566,3 +566,5 @@ html[data-theme="neon"] .offer-buy { background: #5CFF7A; color: #14151F; box-sh
 @keyframes finger-tap { 0%, 100% { transform: translate(8px, 14px); } 40%, 55% { transform: translate(0, 0) scale(.92); } }
 @keyframes finger-ring { 0%, 35% { transform: scale(.3); opacity: 0; } 45% { opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
 .tutorial.tut-good { color: #2BB673; animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+.shop-privacy { display: block; margin: 2px auto 0; font-size: 13px; opacity: .75; }
+.shop-privacy[hidden] { display: none; }

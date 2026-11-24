@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Camino bloqueado: primero quita la flecha que estorba',
     notifyTitle: 'El nivel diario está listo 🎁',
     notifyBody: 'Te espera una imagen nueva y tu regalo del día',
+    privacyChoices: 'Ajustes de privacidad',
     adDouble: '▶ Doblar el premio',
     adContinue: '▶ Continuar por un vídeo',
     coll_animals: 'Animales',

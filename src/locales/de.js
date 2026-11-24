@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Weg blockiert – erst den Pfeil im Weg entfernen',
     notifyTitle: 'Das Tageslevel ist bereit 🎁',
     notifyBody: 'Ein neues Bild wartet – und dein Tagesgeschenk auch',
+    privacyChoices: 'Datenschutz-Einstellungen',
     adDouble: '▶ Belohnung verdoppeln',
     adContinue: '▶ Weiter per Video',
     coll_animals: 'Tiere',

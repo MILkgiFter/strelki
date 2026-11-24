@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Đường bị chặn — hãy gỡ mũi tên cản đường trước',
     notifyTitle: 'Màn hằng ngày đã sẵn sàng 🎁',
     notifyBody: 'Bức tranh mới đang chờ — cùng quà mỗi ngày của bạn',
+    privacyChoices: 'Cài đặt quyền riêng tư',
     adDouble: '▶ Nhân đôi thưởng',
     adContinue: '▶ Xem video để chơi tiếp',
     coll_animals: 'Động vật',

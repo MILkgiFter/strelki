@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Caminho bloqueado: tire primeiro a seta que atrapalha',
     notifyTitle: 'O nível diário está pronto 🎁',
     notifyBody: 'Uma nova imagem te espera — e o presente do dia também',
+    privacyChoices: 'Configurações de privacidade',
     adDouble: '▶ Dobrar o prêmio',
     adContinue: '▶ Continuar por um vídeo',
     coll_animals: 'Animais',

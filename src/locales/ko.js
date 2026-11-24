@@ -54,6 +54,7 @@ export default {
     tutBlocked: '길이 막혔어요 — 앞을 막는 화살표부터 치우세요',
     notifyTitle: '오늘의 레벨이 준비됐어요 🎁',
     notifyBody: '새 그림과 오늘의 선물이 기다리고 있어요',
+    privacyChoices: '개인정보 설정',
     adDouble: '▶ 보상 2배',
     adContinue: '▶ 영상 보고 계속하기',
     coll_animals: '동물',

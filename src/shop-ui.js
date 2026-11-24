@@ -8,6 +8,7 @@ import { $ } from './store.js';
 import { toast } from './boosters-ui.js';
 import { initShop, shopReady, shopItems, buy, restore } from './shop.js';
 import { updateThemeButton } from './screens.js';
+import { privacyChoicesNeeded, showPrivacyOptions } from './ads.js';
 
 function render() {
   const box = $('shop-list');
@@ -32,11 +33,16 @@ export function initShopUI({ grant }) {
     sfx.click();
     if (!shopReady()) toast(t('shopNoStore'));
     render();
+    $('shop-privacy').hidden = !privacyChoicesNeeded(); // только где закон требует согласия (ЕС, Великобритания)
     $('shop').hidden = false;
   });
   $('shop-close').addEventListener('click', () => {
     sfx.click();
     $('shop').hidden = true;
+  });
+  $('shop-privacy').addEventListener('click', () => {
+    sfx.click();
+    showPrivacyOptions();
   });
   $('shop-restore').addEventListener('click', () => {
     unlock();

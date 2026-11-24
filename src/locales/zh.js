@@ -54,6 +54,7 @@ export default {
     tutBlocked: '路被挡住了——先移开挡路的箭头',
     notifyTitle: '每日关卡已就绪 🎁',
     notifyBody: '新图画和每日礼物都在等你',
+    privacyChoices: '隐私设置',
     adDouble: '▶ 奖励翻倍',
     adContinue: '▶ 看视频继续',
     coll_animals: '动物',

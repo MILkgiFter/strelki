@@ -54,6 +54,7 @@ export default {
     tutBlocked: '道がふさがっています。先にじゃまな矢印をどかそう',
     notifyTitle: '今日のレベルができました 🎁',
     notifyBody: '新しい絵とデイリーギフトが待っています',
+    privacyChoices: 'プライバシー設定',
     adDouble: '▶ 報酬を2倍に',
     adContinue: '▶ 動画を見て続ける',
     coll_animals: 'どうぶつ',

@@ -63,6 +63,7 @@ export default {
     tutBlocked: 'Droga zablokowana — najpierw usuń strzałkę, która przeszkadza',
     notifyTitle: 'Poziom dnia jest gotowy 🎁',
     notifyBody: 'Czeka nowy obrazek — i dzienny prezent też',
+    privacyChoices: 'Ustawienia prywatności',
     adDouble: '▶ Podwój nagrodę',
     adContinue: '▶ Kontynuuj za film',
     coll_animals: 'Zwierzęta',

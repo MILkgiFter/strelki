@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Yol kapalı: önce yolu tıkayan oku kaldır',
     notifyTitle: 'Günlük seviye hazır 🎁',
     notifyBody: 'Yeni bir resim ve günlük hediyen seni bekliyor',
+    privacyChoices: 'Gizlilik ayarları',
     adDouble: '▶ Ödülü ikiye katla',
     adContinue: '▶ Video ile devam et',
     coll_animals: 'Hayvanlar',

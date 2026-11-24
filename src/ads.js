@@ -34,6 +34,17 @@ export function noAdsBought() {
 }
 export const adsReady = () => ready;
 
+// согласие на рекламу (ЕС, Великобритания): игрок должен иметь возможность его поменять — ссылка в магазине
+let consentStatus = '';
+export const privacyChoicesNeeded = () => ready && (consentStatus === 'OBTAINED' || consentStatus === 'REQUIRED');
+export async function showPrivacyOptions() {
+  try {
+    await plugin?.showPrivacyOptionsForm();
+  } catch {
+    /* форма недоступна — ничего страшного */
+  }
+}
+
 // счётчики показов: сегодня (для дневного лимита) и всего (спецпредложение — после нескольких реклам)
 export function adStats(day = dayIndex(new Date())) {
   let s = null;
@@ -63,14 +74,15 @@ export async function initAds() {
     const m = await import('@capacitor-community/admob');
     plugin = m.AdMob;
     events = m.RewardAdPluginEvents;
-    await plugin.initialize({ initializeForTesting: ADS.testing });
-    // согласие на персонализацию (GDPR/UMP): форма только там, где она обязательна
+    // сначала согласие (GDPR/UMP, сообщение «Strelki GDPR» в AdMob): форма только там, где она обязательна
     try {
-      const info = await plugin.requestConsentInfo();
-      if (info?.isConsentFormAvailable && info.status === 'REQUIRED') await plugin.showConsentForm();
+      let info = await plugin.requestConsentInfo();
+      if (info?.isConsentFormAvailable && info.status === 'REQUIRED') info = (await plugin.showConsentForm()) || info;
+      consentStatus = info?.status || '';
     } catch {
       /* без формы реклама всё равно показывается неперсонализированной */
     }
+    await plugin.initialize({ initializeForTesting: ADS.testing });
     ready = true;
   } catch {
     ready = false;

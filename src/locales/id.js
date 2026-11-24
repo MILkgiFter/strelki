@@ -54,6 +54,7 @@ export default {
     tutBlocked: 'Jalur tertutup — singkirkan dulu panah yang menghalangi',
     notifyTitle: 'Level harian sudah siap 🎁',
     notifyBody: 'Gambar baru menunggu — hadiah harianmu juga',
+    privacyChoices: 'Pengaturan privasi',
     adDouble: '▶ Gandakan hadiah',
     adContinue: '▶ Lanjut dengan video',
     coll_animals: 'Hewan',
