@@ -1,0 +1,123 @@
+<en-US>
+First release! 200 levels, daily gifts, beautiful themes and a gentle tutorial.
+</en-US>
+<ar>
+الإصدار الأول! 200 مستوى وهدايا يومية وسمات جميلة وشرح سهل للبداية.
+</ar>
+<bn-BD>
+প্রথম রিলিজ! ২০০টি লেভেল, দৈনিক উপহার, সুন্দর থিম আর সহজ টিউটোরিয়াল।
+</bn-BD>
+<cs-CZ>
+První vydání! 200 úrovní, denní dárky, krásné motivy a jednoduchý návod.
+</cs-CZ>
+<da-DK>
+Første udgivelse! 200 niveauer, daglige gaver, smukke temaer og en nem introduktion.
+</da-DK>
+<de-DE>
+Erste Version! 200 Level, tägliche Geschenke, schöne Designs und eine sanfte Einführung.
+</de-DE>
+<el-GR>
+Πρώτη έκδοση! 200 επίπεδα, καθημερινά δώρα, όμορφα θέματα και εύκολη εκμάθηση.
+</el-GR>
+<en-AU>
+First release! 200 levels, daily gifts, beautiful themes and a gentle tutorial.
+</en-AU>
+<en-CA>
+First release! 200 levels, daily gifts, beautiful themes and a gentle tutorial.
+</en-CA>
+<en-GB>
+First release! 200 levels, daily gifts, beautiful themes and a gentle tutorial.
+</en-GB>
+<en-IN>
+First release! 200 levels, daily gifts, beautiful themes and a gentle tutorial.
+</en-IN>
+<es-419>
+¡Primera versión! 200 niveles, regalos diarios, temas preciosos y un tutorial sencillo.
+</es-419>
+<es-ES>
+¡Primera versión! 200 niveles, regalos diarios, temas preciosos y un tutorial sencillo.
+</es-ES>
+<es-US>
+¡Primera versión! 200 niveles, regalos diarios, temas preciosos y un tutorial sencillo.
+</es-US>
+<fi-FI>
+Ensimmäinen julkaisu! 200 tasoa, päivittäiset lahjat, kauniit teemat ja helppo opastus.
+</fi-FI>
+<fil>
+Unang release! 200 level, daily gifts, magagandang tema at madaling tutorial.
+</fil>
+<fr-CA>
+Première version ! 200 niveaux, cadeaux quotidiens, beaux thèmes et un tutoriel tout en douceur.
+</fr-CA>
+<fr-FR>
+Première version ! 200 niveaux, cadeaux quotidiens, beaux thèmes et un tutoriel tout en douceur.
+</fr-FR>
+<hi-IN>
+पहला रिलीज़! 200 लेवल, रोज़ के तोहफ़े, सुंदर थीम और आसान ट्यूटोरियल।
+</hi-IN>
+<hu-HU>
+Első kiadás! 200 pálya, napi ajándékok, szép témák és könnyű bevezető.
+</hu-HU>
+<id>
+Rilis pertama! 200 level, hadiah harian, tema cantik, dan tutorial yang mudah.
+</id>
+<it-IT>
+Prima versione! 200 livelli, regali giornalieri, temi bellissimi e un tutorial semplice.
+</it-IT>
+<iw-IL>
+גרסה ראשונה! 200 שלבים, מתנות יומיות, ערכות נושא יפות והדרכה פשוטה.
+</iw-IL>
+<ja-JP>
+初リリース！200レベル、毎日のプレゼント、美しいテーマ、やさしいチュートリアル。
+</ja-JP>
+<kk>
+Алғашқы шығарылым! 200 деңгей, күнделікті сыйлықтар, әдемі тақырыптар және оңай үйрету.
+</kk>
+<ko-KR>
+첫 출시! 200개 레벨, 매일 선물, 아름다운 테마와 쉬운 튜토리얼.
+</ko-KR>
+<ms-MY>
+Keluaran pertama! 200 tahap, hadiah harian, tema cantik dan tutorial mudah.
+</ms-MY>
+<nl-NL>
+Eerste versie! 200 levels, dagelijkse cadeaus, mooie thema's en een eenvoudige uitleg.
+</nl-NL>
+<no-NO>
+Første utgivelse! 200 nivåer, daglige gaver, vakre temaer og en enkel innføring.
+</no-NO>
+<pl-PL>
+Pierwsze wydanie! 200 poziomów, codzienne prezenty, piękne motywy i prosty samouczek.
+</pl-PL>
+<pt-BR>
+Primeira versão! 200 níveis, presentes diários, temas lindos e um tutorial simples.
+</pt-BR>
+<pt-PT>
+Primeira versão! 200 níveis, presentes diários, temas bonitos e um tutorial simples.
+</pt-PT>
+<ro>
+Prima versiune! 200 de niveluri, cadouri zilnice, teme frumoase și un tutorial simplu.
+</ro>
+<ru-RU>
+Первый выпуск! 200 уровней, подарки каждый день, красивые темы и понятное обучение.
+</ru-RU>
+<sv-SE>
+Första versionen! 200 nivåer, dagliga gåvor, vackra teman och en enkel introduktion.
+</sv-SE>
+<th>
+เปิดตัวครั้งแรก! 200 ด่าน ของขวัญรายวัน ธีมสวย และบทแนะนำที่เข้าใจง่าย
+</th>
+<tr-TR>
+İlk sürüm! 200 seviye, günlük hediyeler, güzel temalar ve kolay bir başlangıç rehberi.
+</tr-TR>
+<uk>
+Перший випуск! 200 рівнів, щоденні подарунки, гарні теми й зрозуміле навчання.
+</uk>
+<vi>
+Phiên bản đầu tiên! 200 màn chơi, quà mỗi ngày, chủ đề đẹp và hướng dẫn dễ hiểu.
+</vi>
+<zh-CN>
+首次发布！200个关卡、每日礼物、精美主题和简单易懂的教程。
+</zh-CN>
+<zh-TW>
+首次發布！200個關卡、每日禮物、精美主題與簡單易懂的教學。
+</zh-TW>
