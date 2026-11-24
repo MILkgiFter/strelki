@@ -12,8 +12,9 @@
 - ⬜ 👤 После того как игра появится в Play: AdMob → «Приложения» → «Стрелки» → «Связать со стором» (найти по io.github.milkgifter.strelki). Через 1–2 дня там же статус app-ads.txt станет «Найден».
 
 ## C. Аналитика (Firebase) — чтобы видеть удержание, воронку уровней, вылеты
-- ⬜ 👤/🤖 Проект Firebase: https://console.firebase.google.com → «Добавить проект» → название «Strelki» → Google Analytics: включить → Android-приложение с пакетом `io.github.milkgifter.strelki` → скачать `google-services.json` → положить в `C:\гейм\android\app\google-services.json`. (Могу пройти сам в браузере, если ты залогинен.)
-- ⬜ 🤖 Подключить Analytics + Crashlytics, события: начало/победа/поражение уровня, бустеры, реклама, покупки.
+- ✅ 🤖 Проект Firebase «Strelki» (strelki-5de01), Analytics включена, Android-приложение `io.github.milkgifter.strelki`, `android/app/google-services.json` (в git не кладём). Gemini в Firebase выключен.
+- ✅ 🤖 В коде: Firebase Analytics + Crashlytics. События: level_start/level_end (уровень, успех, звёзды), booster_use/booster_empty, ad_interstitial/ad_rewarded, offer_shown/click/decline, tutorial_begin/complete, review_ask, notify_permission. Покупки Firebase считает сам. Отчёты: https://console.firebase.google.com/project/strelki-5de01/analytics
+- ⬜ 🤖 Проверить на эмуляторе — **нужно место на диске C** (свободно 1,4 ГБ, эмулятору нужно больше).
 
 ## D. Удержание и оценки
 - ✅ 🤖 Окно «Оцените игру» (Google In-App Review) — после победы на 3★ с 15-го уровня, не чаще раза в 60 дней (войдёт в 1.0.5).
