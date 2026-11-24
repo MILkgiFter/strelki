@@ -21,17 +21,23 @@ export function initTutorial(state) {
 export function startTutorial(level, daily) {
   tut = !daily && TUTORIAL.levels.includes(level) ? { left: TUTORIAL.taps, id: -1 } : null;
   finger().hidden = true;
+  clearTimeout(doneTimer);
   $('tutorial').classList.remove('tut-good');
 }
 
+let doneTimer = 0;
 function stop(done) {
   tut = null;
   finger().hidden = true;
   if (st.hint && st.hint.hold) st.hint = null;
   if (done) {
-    $('tutorial').textContent = t('tutDone');
-    $('tutorial').classList.add('tut-good');
-    $('tutorial').hidden = false;
+    const el = $('tutorial');
+    el.textContent = t('tutDone');
+    el.classList.add('tut-good');
+    el.hidden = false;
+    // похвала — ненадолго, чтобы не висела под окном победы
+    clearTimeout(doneTimer);
+    doneTimer = setTimeout(() => el.classList.contains('tut-good') && (el.hidden = true), TUTORIAL.doneMs);
   }
 }
 
@@ -45,17 +51,26 @@ export function tutorialFrame(now) {
     piece = findFree(st.grid, st.w, st.h);
     if (!piece) return stop(false);
     tut.id = piece.id;
-    // подсветка без срока: держится, пока стрелка не улетит
-    st.hint = { id: piece.id, t0: now - ANIM.hintFadeMs, hold: true };
   }
+  // подсветка без срока: держится, пока стрелка не улетит; возвращается, если её сменила лупа или подсветка ключа
+  if (!st.hint) st.hint = { id: piece.id, t0: now - ANIM.hintFadeMs, hold: true };
   const L = view(window.innerWidth, window.innerHeight, st);
   // палец — на середине тела: нос с направлением остаётся видно
   const mid = piece.cells[Math.min(piece.cells.length - 1, Math.max(1, Math.floor(piece.cells.length / 2)))];
   const [hx, hy] = cellXY(mid, st.w);
   const x = L.x + (hx + 0.5) * L.cell;
   const y = L.y + (hy + 0.5) * L.cell;
-  finger().style.transform = `translate(${x}px, ${y}px)`;
-  finger().hidden = false;
+  const f = finger();
+  if (f.hidden) {
+    // первое появление — сразу на месте, без проезда через весь экран из угла
+    f.style.transition = 'none';
+    f.style.transform = `translate(${x}px, ${y}px)`;
+    f.hidden = false;
+    void f.offsetWidth;
+    f.style.transition = '';
+  } else {
+    f.style.transform = `translate(${x}px, ${y}px)`;
+  }
 }
 
 // стрелка улетела — следующая или конец обучения
@@ -63,7 +78,7 @@ export function tutorialFlew(piece) {
   if (!tut || piece.id !== tut.id) return;
   tut.left--;
   tut.id = -1;
-  if (st.hint && st.hint.hold) st.hint = null;
+  if (st.hint && st.hint.hold && st.hint.id === piece.id) st.hint = null;
   if (tut.left <= 0) stop(true);
 }
 

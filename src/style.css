@@ -527,7 +527,7 @@ html[data-look="chalk"] .alb-head { background: #34503F; }
 #adoffer-buy[hidden] { display: none; }
 .card-offer { max-width: 340px; padding: 26px 22px 18px; position: relative; overflow: hidden; }
 .card-offer::before {
-  content: ''; position: absolute; inset: -40% -40% auto; height: 70%;
+  content: ''; position: absolute; inset: -40% 0 auto; height: 70%;
   background: radial-gradient(closest-side, rgba(255,176,32,.28), transparent);
   pointer-events: none;
 }

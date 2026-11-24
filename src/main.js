@@ -338,8 +338,16 @@ function showWin(stars, prev) {
     const next = () => startLevel(st.daily ? progress : doneLevel + 1);
     // после показанной рекламы иногда (редко) — спецпредложение «навсегда без рекламы»; уровень — после закрытия окна
     betweenLevels(st.daily ? 0 : doneLevel)
-      .then((shown) => !(shown && maybeOfferAfterAd(next)) && next())
-      .catch(next);
+      .catch(() => false)
+      .then((shown) => {
+        let offered = false;
+        try {
+          offered = shown && maybeOfferAfterAd(next);
+        } catch {
+          /* окно не открылось — просто дальше */
+        }
+        if (!offered) next(); // ровно один переход: либо сразу, либо после закрытия окна
+      });
   }, stars);
   const icons = { hint: '🔍', eraser: '🧽', life: '♥' };
   const got = st.winGot || [];

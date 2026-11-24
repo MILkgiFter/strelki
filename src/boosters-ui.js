@@ -61,7 +61,7 @@ export function useLife() {
 }
 
 export function useHint() {
-  if (st.over || st.hint) return; // пока подсказка горит — новую не тратим
+  if (st.over || (st.hint && !st.hint.hold)) return; // пока подсказка горит — новую не тратим (подсветка обучения — не в счёт)
   if (boost.hint <= 0) return noBoost('hint');
   const piece = findFree(st.grid, st.w, st.h);
   if (!piece) return;

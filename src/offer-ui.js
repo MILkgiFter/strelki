@@ -19,21 +19,28 @@ function open(price, onClose) {
   $('offer-price').textContent = price;
   $('offer').hidden = false;
   sfx.hint();
-  const close = (declined) => {
-    if ($('offer').hidden) return;
+  let closed = false;
+  const close = () => {
+    if (closed) return false;
+    closed = true;
     $('offer').hidden = true;
-    if (declined) save(OFFER.key, offerDeclined(load(OFFER.key, null)));
-    onClose?.();
+    return true;
   };
   $('offer-buy').onclick = () => {
+    if (!close()) return;
     unlock();
     sfx.click();
-    close(false);
-    buy(OFFER.product);
+    // согласие купить — отказы обнуляются; следующий уровень — после окна оплаты Google Play
+    save(OFFER.key, { ...(load(OFFER.key, null) || {}), declines: 0 });
+    Promise.resolve(buy(OFFER.product))
+      .catch(() => {})
+      .finally(() => onClose?.());
   };
   $('offer-no').onclick = () => {
+    if (!close()) return;
     sfx.click();
-    close(true);
+    save(OFFER.key, offerDeclined(load(OFFER.key, null)));
+    onClose?.();
   };
 }
 
@@ -42,8 +49,8 @@ export function maybeOfferAfterAd(onClose) {
   const state = load(OFFER.key, null);
   const price = priceOf(OFFER.product);
   if (!price || !shouldOffer(state, Date.now(), adStats().total, noAdsBought())) return false;
-  save(OFFER.key, offerShown(state, Date.now()));
   open(price, onClose);
+  save(OFFER.key, offerShown(state, Date.now())); // засчитываем только реально открытое окно
   return true;
 }
 
