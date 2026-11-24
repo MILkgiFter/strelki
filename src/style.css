@@ -521,3 +521,48 @@ html[data-look="chalk"] .alb-head { background: #34503F; }
 .langs-grid { grid-template-columns: repeat(3, 1fr); margin-top: 12px; }
 .langs-grid .look { padding: 12px 4px; }
 .langs-grid .look-name { font-size: 14px; }
+
+/* ---------- этап 13: спецпредложение после рекламы ---------- */
+#adoffer-buy { display: block; margin: 10px auto 0; }
+#adoffer-buy[hidden] { display: none; }
+.card-offer { max-width: 340px; padding: 26px 22px 18px; position: relative; overflow: hidden; }
+.card-offer::before {
+  content: ''; position: absolute; inset: -40% -40% auto; height: 70%;
+  background: radial-gradient(closest-side, rgba(255,176,32,.28), transparent);
+  pointer-events: none;
+}
+.offer-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 999px;
+  background: #FFB020; color: #2E2A24; font-size: 13px; font-weight: 800; letter-spacing: .3px;
+  animation: badge-wiggle 2.6s ease-in-out infinite;
+}
+.offer-art { position: relative; height: 78px; margin: 10px 0 4px; font-size: 52px; line-height: 78px; }
+.offer-art span { position: absolute; left: 50%; transform: translateX(-50%); }
+.offer-art span:first-child { font-size: 72px; z-index: 1; opacity: .9; animation: pop .5s .15s cubic-bezier(.2,1.6,.4,1) both; }
+.offer-perks { list-style: none; padding: 0; margin: 14px 0 4px; text-align: left; font-size: 15px; }
+.offer-perks li { padding: 6px 0 6px 28px; position: relative; }
+.offer-perks li::before { content: '✓'; position: absolute; left: 4px; color: #2BB673; font-weight: 800; }
+.offer-buy { width: 100%; margin-top: 16px; padding: 16px 12px; background: #2BB673; color: #fff; }
+.offer-buy b { font-weight: 800; }
+#offer-no { margin-top: 10px; }
+@keyframes badge-wiggle { 0%, 86%, 100% { transform: rotate(0); } 90% { transform: rotate(-4deg); } 95% { transform: rotate(4deg); } }
+html[data-theme="neon"] .offer-buy { background: #5CFF7A; color: #14151F; box-shadow: 0 3px 0 rgba(0,0,0,.45), 0 0 14px rgba(92,255,122,.35); }
+
+/* ---------- этап 13: обучение — палец над свободной стрелкой ---------- */
+.finger {
+  position: fixed; left: 0; top: 0; z-index: 3; pointer-events: none;
+  width: 0; height: 0; transition: transform .45s cubic-bezier(.3,1.3,.5,1);
+}
+.finger[hidden] { display: none; }
+.finger-hand {
+  position: absolute; left: -6px; top: 4px; font-size: 44px; line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(46,42,36,.3));
+  animation: finger-tap 1.3s ease-in-out infinite;
+}
+.finger-ring {
+  position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+  border: 3px solid #FFB020; animation: finger-ring 1.3s ease-out infinite;
+}
+@keyframes finger-tap { 0%, 100% { transform: translate(8px, 14px); } 40%, 55% { transform: translate(0, 0) scale(.92); } }
+@keyframes finger-ring { 0%, 35% { transform: scale(.3); opacity: 0; } 45% { opacity: 1; } 100% { transform: scale(1.4); opacity: 0; } }
+.tutorial.tut-good { color: #2BB673; animation: pop .35s cubic-bezier(.2,1.6,.4,1); }

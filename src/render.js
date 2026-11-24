@@ -394,7 +394,9 @@ export function render(ctx, w, h, st, now) {
     let dimK = 0;
     if (st.hint) {
       const ht = now - st.hint.t0;
-      dimK = Math.max(0, Math.min(1, ht / ANIM.hintFadeMs, (ANIM.hintShowMs - ht) / ANIM.hintFadeMs));
+      // hold — подсветка обучения: без срока, гаснет только когда стрелка улетит
+      const out = st.hint.hold ? 1 : (ANIM.hintShowMs - ht) / ANIM.hintFadeMs;
+      dimK = Math.max(0, Math.min(1, ht / ANIM.hintFadeMs, out));
     }
     const othersAlpha = 1 - (1 - ANIM.hintDim) * dimK;
     const pressId = st.press ? st.press.id : -1;

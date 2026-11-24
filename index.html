@@ -30,6 +30,7 @@
   <canvas id="board"></canvas>
   <div class="finale" id="finale" hidden></div>
   <div class="tutorial" id="tutorial" hidden>Тапни по стрелке — она улетит, если путь свободен</div>
+  <div class="finger" id="finger" hidden aria-hidden="true"><div class="finger-ring"></div><div class="finger-hand">👆</div></div>
 
   <footer class="hud hud-bottom">
     <button class="boost" id="b-hint" data-i18n-aria="bHint"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="#5B7FFF" stroke-width="3"/><path d="M15 15 L20.5 20.5" stroke="#5B7FFF" stroke-width="3.4" stroke-linecap="round"/></svg><span class="boost-label" data-i18n="bHint"></span><span class="badge" id="c-hint">0</span></button>
@@ -82,7 +83,22 @@
       <div class="card-title" id="adoffer-title"></div>
       <div class="card-sub" data-i18n="adOfferSub">Короткий ролик — и награда твоя</div>
       <button class="btn btn-big" id="adoffer-watch" data-i18n="adWatch">▶ Смотреть</button>
+      <button class="btn btn-ghost" id="adoffer-buy" hidden></button>
       <button class="link-btn" id="adoffer-no" data-i18n="streakLater">Позже</button>
+    </div>
+  </div>
+  <div class="overlay" id="offer" hidden>
+    <div class="card card-offer">
+      <div class="offer-badge" data-i18n="offerBadge">Спецпредложение</div>
+      <div class="offer-art" aria-hidden="true"><span>🚫</span><span>📺</span></div>
+      <div class="card-title" data-i18n="offerTitle">Играй без рекламы</div>
+      <ul class="offer-perks">
+        <li data-i18n="offerPerk1">Навсегда без рекламы между уровнями</li>
+        <li data-i18n="offerPerk2">В подарок: 🔍×10 🧽×5 ♥×5</li>
+        <li data-i18n="offerPerk3">Дешевле, чем просто «Без рекламы»</li>
+      </ul>
+      <button class="btn btn-big offer-buy" id="offer-buy"><span data-i18n="offerBuy">Забрать</span> · <b id="offer-price"></b></button>
+      <button class="link-btn" id="offer-no" data-i18n="offerNo">Не сейчас</button>
     </div>
   </div>
   <div class="overlay" id="looks" hidden>

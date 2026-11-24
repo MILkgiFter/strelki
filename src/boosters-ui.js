@@ -9,6 +9,7 @@ import { clampCam, viewCenter } from './camera.js';
 import { $ } from './store.js';
 import { adsReady, showRewarded } from './ads.js';
 import { grantSet } from './boosters.js';
+import { boosterPackButton } from './offer-ui.js';
 
 let st = null;
 let boost = null;
@@ -84,8 +85,10 @@ export function useHint() {
 // бустер закончился: в приложении — предложить ролик за +1, иначе просто сообщить
 const AD_ICONS = { hint: '🔍', eraser: '🧽', life: '♥' };
 export function noBoost(kind) {
-  if (!adsReady()) return toast(t('noBoost'));
+  boosterPackButton(); // пак бустеров — вторая кнопка, только если стор отвечает
+  if (!adsReady() && $('adoffer-buy').hidden) return toast(t('noBoost'));
   $('adoffer-title').textContent = t('adBoost', AD_ICONS[kind]);
+  $('adoffer-watch').hidden = !adsReady();
   $('adoffer').hidden = false;
   $('adoffer-no').onclick = () => ($('adoffer').hidden = true);
   $('adoffer-watch').onclick = async () => {

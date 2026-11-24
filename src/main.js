@@ -14,6 +14,8 @@ import { initStreakUI } from './streak-ui.js';
 import { initTasksUI, tasksOnEvent } from './tasks-ui.js';
 import { initAds, adsReady, showRewarded, betweenLevels } from './ads.js';
 import { initShopUI } from './shop-ui.js';
+import { initTutorial, startTutorial, tutorialFrame, tutorialFlew, tutorialBlocked } from './tutorial.js';
+import { maybeOfferAfterAd, previewOffer } from './offer-ui.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -164,6 +166,7 @@ function startLevel(n, daily = false) {
   $('tutorial').textContent = st.tutorial;
   $('tutorial').hidden = !st.tutorial;
   showCoach(!coachSeen && n >= BOOSTERS.coachFrom);
+  startTutorial(n, daily || IS_ADMIN);
   updateHud();
 }
 
@@ -245,6 +248,7 @@ function tap(piece) {
     const speed = Math.max(ANIM.flySpeed, (toEdge * 1000) / ANIM.flyMaxMs);
     st.flyers.push({ piece, t0: now, toEdge, speed });
     if (st.hint && st.hint.id === piece.id) st.hint = null;
+    tutorialFlew(piece);
     st.combo = now - st.comboT < SOUND.comboWindowMs ? st.combo + 1 : 0;
     st.comboT = now;
     sfx.fly(st.combo, piece.len);
@@ -254,6 +258,7 @@ function tap(piece) {
 
   sfx.bump();
   st.combo = 0;
+  if (!locked) tutorialBlocked(st.level, st.daily);
   try {
     // до первого настоящего касания браузер блокирует вибрацию и пишет ошибку в консоль
     if (navigator.userActivation?.hasBeenActive !== false) navigator.vibrate?.(GAME.vibrateMs);
@@ -330,7 +335,11 @@ function showWin(stars, prev) {
   const doneLevel = st.level;
   showOverlay(t('starTitles')[stars], sub, t('next'), () => {
     // иногда реклама между уровнями (с 10-го, не чаще раза в 2 уровня и 90 с; SPEC §8), потом следующий уровень
-    betweenLevels(st.daily ? 0 : doneLevel).finally(() => startLevel(st.daily ? progress : doneLevel + 1));
+    const next = () => startLevel(st.daily ? progress : doneLevel + 1);
+    // после показанной рекламы иногда (редко) — спецпредложение «навсегда без рекламы»; уровень — после закрытия окна
+    betweenLevels(st.daily ? 0 : doneLevel)
+      .then((shown) => !(shown && maybeOfferAfterAd(next)) && next())
+      .catch(next);
   }, stars);
   const icons = { hint: '🔍', eraser: '🧽', life: '♥' };
   const got = st.winGot || [];
@@ -423,6 +432,8 @@ function lose() {
 initCamera(st, canvas);
 initInput(st, canvas, (p) => (st.mode === 'erase' ? erase(p) : tap(p)));
 initBoostersUI({ st, boost, saveBoost, updateHud });
+initTutorial(st);
+if (IS_ADMIN) window.__offer = previewOffer; // админка: посмотреть окно спецпредложения на сайте
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
 initAds();
@@ -532,7 +543,8 @@ function tick(now) {
   );
   for (const [i, b] of st.bumps) if (now - b.t0 > b.dur) st.bumps.delete(i);
   for (const [i, t] of st.pops) if (now - t > ANIM.popMs) st.pops.delete(i);
-  if (st.hint && now - st.hint.t0 > ANIM.hintShowMs) st.hint = null;
+  if (st.hint && !st.hint.hold && now - st.hint.t0 > ANIM.hintShowMs) st.hint = null;
+  tutorialFrame(now);
   st.erased = st.erased.filter((e) => now - e.t0 < BOOSTERS.eraseMs);
 
   if (!st.over && st.grid && st.flyers.length === 0 && st.grid.every((v) => !isPiece(v))) win();
