@@ -1,4 +1,4 @@
-# Подписанная сборка для Google Play (п. 12.7): веб-сборка → android → app-release.aab.
+﻿# Подписанная сборка для Google Play (п. 12.7): веб-сборка → android → app-release.aab.
 # Пароль ключа спрашивается скрытым вводом и живёт только в этом окне, на диск не пишется.
 # Запуск из корня проекта: .\tools\build-release.ps1
 $ErrorActionPreference = 'Stop'
@@ -6,7 +6,7 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 if (-not (Test-Path 'android\upload-key.jks')) { throw 'Нет ключа: сначала .\tools\make-upload-key.ps1' }
 
-if (Select-String -Path 'src\config.js' -Pattern 'testing: true' -Quiet) {
+if (Select-String -Path 'src\config.js' -Pattern '^\s*testing:\s*true' -Quiet) {
   Write-Host 'ВНИМАНИЕ: ADS.testing = true — в сборке тестовая реклама Google (без дохода). Для выпуска в открытый доступ поставь testing: false.' -ForegroundColor Yellow
 }
 $sec = Read-Host 'Пароль ключа подписи' -AsSecureString
