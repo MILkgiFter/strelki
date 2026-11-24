@@ -282,7 +282,7 @@ export const COLLECTIONS = {
 // при разработке запрещены правилами AdMob). Перед выпуском в стор: testing: false.
 // ID приложения (real.appId) прописан и в android/app/src/main/res/values/strings.xml (admob_app_id).
 export const ADS = {
-  testing: true,
+  testing: false, // настоящая реклама (2026-11-24, перед открытым выпуском); свои объявления не нажимать
   real: {
     appId: 'ca-app-pub-7222055770291725~5642118498',
     rewardedId: 'ca-app-pub-7222055770291725/5450546801', // strelki_rewarded
