@@ -13,3 +13,6 @@ refs/
 # Скриншоты Play на всех языках (локально, ~64 МБ; пересъёмка скриптом с эмулятора)
 store/screenshots/*/
 store/play-upload/
+
+# скриншоты Play с подписями (генерируются tools/make-store-shots.py)
+store/play-upload-v2/
