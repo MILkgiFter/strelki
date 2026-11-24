@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 Paket booster · ${p}`,
     tutDone: 'Mantap! Sekarang giliranmu',
     tutBlocked: 'Jalur tertutup — singkirkan dulu panah yang menghalangi',
+    notifyTitle: 'Level harian sudah siap 🎁',
+    notifyBody: 'Gambar baru menunggu — hadiah harianmu juga',
     adDouble: '▶ Gandakan hadiah',
     adContinue: '▶ Lanjut dengan video',
     coll_animals: 'Hewan',

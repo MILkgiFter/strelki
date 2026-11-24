@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 Pack de ayudas · ${p}`,
     tutDone: '¡Genial! Ahora tú solo',
     tutBlocked: 'Camino bloqueado: primero quita la flecha que estorba',
+    notifyTitle: 'El nivel diario está listo 🎁',
+    notifyBody: 'Te espera una imagen nueva y tu regalo del día',
     adDouble: '▶ Doblar el premio',
     adContinue: '▶ Continuar por un vídeo',
     coll_animals: 'Animales',

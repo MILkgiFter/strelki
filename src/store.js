@@ -2,7 +2,7 @@
 import { GAME, DAILY, BOOSTERS, STREAK, TASKS, COLLECTIONS } from './config.js';
 
 // админская сборка: ?admin=1 — все уровни открыты, прогресс и звёзды не сохраняются
-export const IS_ADMIN = new URLSearchParams(location.search).has('admin');
+export const IS_ADMIN = typeof location !== 'undefined' && new URLSearchParams(location.search).has('admin');
 export const $ = (id) => document.getElementById(id);
 
 // ---------- сохранение (может быть недоступно — тогда просто играем) ----------

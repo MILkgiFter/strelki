@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 Helferpaket · ${p}`,
     tutDone: 'Super! Jetzt allein weiter',
     tutBlocked: 'Weg blockiert – erst den Pfeil im Weg entfernen',
+    notifyTitle: 'Das Tageslevel ist bereit 🎁',
+    notifyBody: 'Ein neues Bild wartet – und dein Tagesgeschenk auch',
     adDouble: '▶ Belohnung verdoppeln',
     adContinue: '▶ Weiter per Video',
     coll_animals: 'Tiere',

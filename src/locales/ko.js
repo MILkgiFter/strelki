@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 부스터 팩 · ${p}`,
     tutDone: '좋아요! 이제 혼자 해 보세요',
     tutBlocked: '길이 막혔어요 — 앞을 막는 화살표부터 치우세요',
+    notifyTitle: '오늘의 레벨이 준비됐어요 🎁',
+    notifyBody: '새 그림과 오늘의 선물이 기다리고 있어요',
     adDouble: '▶ 보상 2배',
     adContinue: '▶ 영상 보고 계속하기',
     coll_animals: '동물',

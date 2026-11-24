@@ -61,6 +61,8 @@ export default {
     offerPack: (p) => `🛒 Pakiet pomocy · ${p}`,
     tutDone: 'Świetnie! Teraz sam',
     tutBlocked: 'Droga zablokowana — najpierw usuń strzałkę, która przeszkadza',
+    notifyTitle: 'Poziom dnia jest gotowy 🎁',
+    notifyBody: 'Czeka nowy obrazek — i dzienny prezent też',
     adDouble: '▶ Podwój nagrodę',
     adContinue: '▶ Kontynuuj za film',
     coll_animals: 'Zwierzęta',

@@ -16,6 +16,7 @@ import { initAds, adsReady, showRewarded, betweenLevels } from './ads.js';
 import { initShopUI } from './shop-ui.js';
 import { initTutorial, startTutorial, tutorialFrame, tutorialFlew, tutorialBlocked } from './tutorial.js';
 import { maybeOfferAfterAd, previewOffer } from './offer-ui.js';
+import { initGrowth, maybeAskReview, maybeAskNotify } from './growth.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -333,8 +334,10 @@ function showWin(stars, prev) {
   const sub = st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
   // после ежедневного «Дальше» ведёт к основному пути
   const doneLevel = st.level;
+  // момент радости: иногда «Оцените игру» (с 15-го уровня, 3 ★), иначе — со 2-го дня один раз разрешение на уведомление
+  if (!st.daily) maybeAskReview(doneLevel, stars).then((asked) => !asked && maybeAskNotify());
   showOverlay(t('starTitles')[stars], sub, t('next'), () => {
-    // иногда реклама между уровнями (с 10-го, не чаще раза в 2 уровня и 90 с; SPEC §8), потом следующий уровень
+    // иногда реклама между уровнями (правила ADS в config, SPEC §8), потом следующий уровень
     const next = () => startLevel(st.daily ? progress : doneLevel + 1);
     // после показанной рекламы иногда (редко) — спецпредложение «навсегда без рекламы»; уровень — после закрытия окна
     betweenLevels(st.daily ? 0 : doneLevel)
@@ -445,6 +448,7 @@ if (IS_ADMIN) window.__offer = previewOffer; // админка: посмотре
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
 initAds();
+initGrowth();
 initShopUI({ grant: (set) => { grantSet(boost, set); saveBoost(); updateHud(); } });
 
 $('restart').addEventListener('click', () => {

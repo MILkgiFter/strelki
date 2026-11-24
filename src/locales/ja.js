@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 ブースターパック · ${p}`,
     tutDone: 'いいね！あとは自分で',
     tutBlocked: '道がふさがっています。先にじゃまな矢印をどかそう',
+    notifyTitle: '今日のレベルができました 🎁',
+    notifyBody: '新しい絵とデイリーギフトが待っています',
     adDouble: '▶ 報酬を2倍に',
     adContinue: '▶ 動画を見て続ける',
     coll_animals: 'どうぶつ',

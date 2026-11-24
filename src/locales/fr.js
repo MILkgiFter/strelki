@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 Pack d’aides · ${p}`,
     tutDone: 'Bravo ! À toi de jouer',
     tutBlocked: 'Chemin bloqué : retire d’abord la flèche qui gêne',
+    notifyTitle: 'Le niveau du jour est prêt 🎁',
+    notifyBody: 'Une nouvelle image t’attend, et ton cadeau du jour aussi',
     adDouble: '▶ Doubler la récompense',
     adContinue: '▶ Continuer pour une vidéo',
     coll_animals: 'Animaux',

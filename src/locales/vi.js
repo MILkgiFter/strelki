@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 Gói trợ giúp · ${p}`,
     tutDone: 'Tuyệt! Giờ tự chơi nhé',
     tutBlocked: 'Đường bị chặn — hãy gỡ mũi tên cản đường trước',
+    notifyTitle: 'Màn hằng ngày đã sẵn sàng 🎁',
+    notifyBody: 'Bức tranh mới đang chờ — cùng quà mỗi ngày của bạn',
     adDouble: '▶ Nhân đôi thưởng',
     adContinue: '▶ Xem video để chơi tiếp',
     coll_animals: 'Động vật',

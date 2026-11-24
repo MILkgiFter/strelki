@@ -52,6 +52,8 @@ export default {
     offerPack: (p) => `🛒 道具包 · ${p}`,
     tutDone: '太棒了！接下来靠你自己',
     tutBlocked: '路被挡住了——先移开挡路的箭头',
+    notifyTitle: '每日关卡已就绪 🎁',
+    notifyBody: '新图画和每日礼物都在等你',
     adDouble: '▶ 奖励翻倍',
     adContinue: '▶ 看视频继续',
     coll_animals: '动物',
