@@ -45,7 +45,8 @@ export function applyTheme(name) {
   document.documentElement.dataset.look = name;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', COLORS.bg);
 }
-function updateThemeButton() {
+// export — магазин обновляет счётчик «N/8» сразу после покупки «Всё оформление»
+export function updateThemeButton() {
   const all = [...THEME.list, ...SKINS.list];
   $('theme-note').textContent = `${all.filter(isOpen).length}/${all.length}`;
 }

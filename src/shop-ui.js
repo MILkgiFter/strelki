@@ -7,6 +7,7 @@ import { sfx, unlock } from './sound.js';
 import { $ } from './store.js';
 import { toast } from './boosters-ui.js';
 import { initShop, shopReady, shopItems, buy, restore } from './shop.js';
+import { updateThemeButton } from './screens.js';
 
 function render() {
   const box = $('shop-list');
@@ -56,6 +57,7 @@ export function initShopUI({ grant }) {
         sfx.hint();
         toast(t('shopThanks'));
       }
+      updateThemeButton(); // «Всё оформление» открывает темы — счётчик в меню сразу 8/8
       if (!$('shop').hidden) render();
     },
   });
