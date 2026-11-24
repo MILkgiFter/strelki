@@ -85,7 +85,13 @@ def main(src):
         s = int(48 * k)
         save(masked(im, s, 'square'), 'android', 'app', 'src', 'main', 'res', 'mipmap-' + name, 'ic_launcher.png')
         save(masked(im, s, 'round'), 'android', 'app', 'src', 'main', 'res', 'mipmap-' + name, 'ic_launcher_round.png')
-        save(im.resize((int(108 * k), int(108 * k)), Image.LANCZOS), 'android', 'app', 'src', 'main', 'res', 'mipmap-' + name, 'ic_launcher_foreground.png')
+        # передний слой: рисунок уменьшен до 64% на фоне цвета краёв — круглая маска лаунчера и системной
+        # заставки Android 12+ видит только центр, иначе срезает то, что выходит за безопасную зону
+        fs = int(108 * k)
+        fg = Image.new('RGBA', (fs, fs), bg + (255,))
+        art = im.resize((int(fs * 0.64), int(fs * 0.64)), Image.LANCZOS)
+        fg.paste(art, ((fs - art.size[0]) // 2, (fs - art.size[1]) // 2), art)
+        save(fg, 'android', 'app', 'src', 'main', 'res', 'mipmap-' + name, 'ic_launcher_foreground.png')
     p = os.path.join(RES, 'values', 'ic_launcher_background.xml')
     s = open(p, encoding='utf-8').read()
     s = re.sub(r'#[0-9A-Fa-f]{6,8}', hexbg, s, count=1)
