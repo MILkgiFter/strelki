@@ -25,6 +25,11 @@
 
         </activity>
 
+        <!-- Firebase Analytics выключена до согласия (ЕС/UK); включает src/ads.js после формы UMP (этап 14) -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+
         <!-- AdMob (п. 12.6): ID приложения — strings.xml admob_app_id -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"

@@ -4,7 +4,7 @@
 import { Capacitor } from '@capacitor/core';
 import { ADS } from './config.js';
 import { dayIndex } from './level.js';
-import { track } from './analytics.js';
+import { track, setAnalyticsConsent } from './analytics.js';
 
 let plugin = null;
 let events = null;
@@ -83,6 +83,8 @@ export async function initAds() {
     } catch {
       /* без формы реклама всё равно показывается неперсонализированной */
     }
+    // аналитика — только если согласие получено или закон его не требует (вне ЕС/UK)
+    setAnalyticsConsent(consentStatus === 'OBTAINED' || consentStatus === 'NOT_REQUIRED');
     await plugin.initialize({ initializeForTesting: ADS.testing });
     ready = true;
   } catch {

@@ -14,7 +14,7 @@
 ## C. Аналитика (Firebase) — чтобы видеть удержание, воронку уровней, вылеты
 - ✅ 🤖 Проект Firebase «Strelki» (strelki-5de01), Analytics включена, Android-приложение `io.github.milkgifter.strelki`, `android/app/google-services.json` (в git не кладём). Gemini в Firebase выключен.
 - ✅ 🤖 В коде: Firebase Analytics + Crashlytics. События: level_start/level_end (уровень, успех, звёзды), booster_use/booster_empty, ad_interstitial/ad_rewarded, offer_shown/click/decline, tutorial_begin/complete, review_ask, notify_permission. Покупки Firebase считает сам. Отчёты: https://console.firebase.google.com/project/strelki-5de01/analytics
-- ⬜ 🤖 Проверить на эмуляторе — **нужно место на диске C** (свободно 1,4 ГБ, эмулятору нужно больше).
+- ✅ 🤖 Проверено на эмуляторе: Firebase и Crashlytics стартуют, события доходят; сбор аналитики — только после согласия (ЕС/UK).
 
 ## D. Удержание и оценки
 - ✅ 🤖 Окно «Оцените игру» (Google In-App Review) — после победы на 3★ с 15-го уровня, не чаще раза в 60 дней (войдёт в 1.0.5).
@@ -30,4 +30,4 @@
 - ⬜ 👤🤖 После публикации — «Отчёт перед запуском» в Play (скорость на реальных телефонах, вылеты).
 
 ## G. Выпуск 1.0.5 (сборка 6)
-- ⬜ 🤖 Собрать после пунктов C–D. 👤 Пароль ключа. 👤 Загрузить в «Рабочую версию».
+- ⬜ 🤖 Сборка 6 (1.0.5) запущена — 👤 ввести пароль ключа во вкладке терминала. 👤 Загрузить AAB в «Рабочую версию» (после того как 1.0.4 пройдёт проверку или вместо неё, если ещё не отправлена).
