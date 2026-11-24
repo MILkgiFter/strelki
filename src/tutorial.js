@@ -7,6 +7,7 @@ import { view } from './render.js';
 import { findFree, cellXY } from './level.js';
 import { $ } from './store.js';
 import { toast } from './boosters-ui.js';
+import { track } from './analytics.js';
 
 let st = null;
 let tut = null; // { left, id } — сколько стрелок ещё показать и какую сейчас
@@ -20,6 +21,7 @@ export function initTutorial(state) {
 // новый уровень: вести ли за руку
 export function startTutorial(level, daily) {
   tut = !daily && TUTORIAL.levels.includes(level) ? { left: TUTORIAL.taps, id: -1 } : null;
+  if (tut && level === TUTORIAL.levels[0]) track('tutorial_begin');
   finger().hidden = true;
   clearTimeout(doneTimer);
   $('tutorial').classList.remove('tut-good');
@@ -31,6 +33,7 @@ function stop(done) {
   finger().hidden = true;
   if (st.hint && st.hint.hold) st.hint = null;
   if (done) {
+    if (st.level === TUTORIAL.levels[TUTORIAL.levels.length - 1]) track('tutorial_complete');
     const el = $('tutorial');
     el.textContent = t('tutDone');
     el.classList.add('tut-good');

@@ -16,3 +16,6 @@ store/play-upload/
 
 # скриншоты Play с подписями (генерируются tools/make-store-shots.py)
 store/play-upload-v2/
+
+# конфиг Firebase (ключ API) — не в публичный репозиторий; копия — в консоли Firebase
+android/app/google-services.json

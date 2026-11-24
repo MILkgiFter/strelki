@@ -10,6 +10,7 @@ import { $ } from './store.js';
 import { adsReady, showRewarded } from './ads.js';
 import { grantSet } from './boosters.js';
 import { boosterPackButton } from './offer-ui.js';
+import { track } from './analytics.js';
 
 let st = null;
 let boost = null;
@@ -38,6 +39,7 @@ export function setMode(mode) {
 export function erase(piece) {
   if (st.bumps.has(piece.id)) return; // стрелка ещё в отскоке — как и обычный тап
   if (!spend(boost, 'eraser')) return setMode(null);
+  track('booster_use', { kind: 'eraser', level: st.level });
   st.usedBoost = true;
   saveBoost();
   removePiece(st.grid, piece);
@@ -52,6 +54,7 @@ export function useLife() {
   if (st.over) return;
   if (st.lives >= GAME.lives) return toast(t('lifeFull'));
   if (!spend(boost, 'life')) return noBoost('life');
+  track('booster_use', { kind: 'life', level: st.level });
   st.usedBoost = true;
   st.usedLife = true;
   saveBoost();
@@ -66,6 +69,7 @@ export function useHint() {
   const piece = findFree(st.grid, st.w, st.h);
   if (!piece) return;
   spend(boost, 'hint');
+  track('booster_use', { kind: 'hint', level: st.level });
   st.usedBoost = true;
   saveBoost();
   st.hint = { id: piece.id, t0: performance.now() };
@@ -85,6 +89,7 @@ export function useHint() {
 // бустер закончился: в приложении — предложить ролик за +1, иначе просто сообщить
 const AD_ICONS = { hint: '🔍', eraser: '🧽', life: '♥' };
 export function noBoost(kind) {
+  track('booster_empty', { kind });
   boosterPackButton(); // пак бустеров — вторая кнопка, только если стор отвечает
   if (!adsReady() && $('adoffer-buy').hidden) return toast(t('noBoost'));
   $('adoffer-title').textContent = t('adBoost', AD_ICONS[kind]);

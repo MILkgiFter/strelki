@@ -5,6 +5,7 @@ import { REVIEW, NOTIFY } from './config.js';
 import { dayIndex } from './level.js';
 import { load, save } from './store.js';
 import { t } from './i18n.js';
+import { track } from './analytics.js';
 
 const native = () => Capacitor.isNativePlatform();
 const today = () => dayIndex(new Date());
@@ -27,6 +28,7 @@ export async function maybeAskReview(level, stars) {
   const day = today();
   if (!shouldAskReview(level, stars, load(REVIEW.key, null), day)) return false;
   save(REVIEW.key, day);
+  track('review_ask', { level });
   try {
     const { InAppReview } = await import('@capacitor-community/in-app-review');
     await InAppReview.requestReview();
@@ -76,6 +78,7 @@ export async function maybeAskNotify() {
   try {
     const LN = await notifications();
     const p = await LN.requestPermissions();
+    track('notify_permission', { granted: p.display === 'granted' ? 1 : 0 });
     if (p.display === 'granted') await schedule(LN);
   } catch {
     /* отказ или нет плагина */

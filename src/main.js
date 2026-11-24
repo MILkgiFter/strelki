@@ -17,6 +17,7 @@ import { initShopUI } from './shop-ui.js';
 import { initTutorial, startTutorial, tutorialFrame, tutorialFlew, tutorialBlocked } from './tutorial.js';
 import { maybeOfferAfterAd, previewOffer } from './offer-ui.js';
 import { initGrowth, maybeAskReview, maybeAskNotify } from './growth.js';
+import { initAnalytics, track } from './analytics.js';
 
 let jsErrors = 0;
 window.addEventListener('error', () => jsErrors++);
@@ -168,6 +169,7 @@ function startLevel(n, daily = false) {
   $('tutorial').hidden = !st.tutorial;
   showCoach(!coachSeen && n >= BOOSTERS.coachFrom);
   startTutorial(n, daily || IS_ADMIN);
+  track('level_start', { level_name: daily ? 'daily' : String(n), level: daily ? 0 : n });
   updateHud();
 }
 
@@ -334,6 +336,7 @@ function showWin(stars, prev) {
   const sub = st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
   // после ежедневного «Дальше» ведёт к основному пути
   const doneLevel = st.level;
+  track('level_end', { level_name: st.daily ? 'daily' : String(doneLevel), level: st.daily ? 0 : doneLevel, success: 1, stars, used_boost: st.usedBoost ? 1 : 0 });
   // момент радости: иногда «Оцените игру» (с 15-го уровня, 3 ★), иначе — со 2-го дня один раз разрешение на уведомление
   if (!st.daily) maybeAskReview(doneLevel, stars).then((asked) => !asked && maybeAskNotify());
   showOverlay(t('starTitles')[stars], sub, t('next'), () => {
@@ -394,6 +397,7 @@ function confetti(stars) {
 }
 
 function lose() {
+  track('level_end', { level_name: st.daily ? 'daily' : String(st.level), level: st.daily ? 0 : st.level, success: 0, stars: 0 });
   sfx.lose();
   setMode(null);
   showOverlay(t('loseTitle'), t('loseSub'), t('restart'), () => startLevel(st.level, st.daily));
@@ -449,6 +453,7 @@ initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
 initAds();
 initGrowth();
+initAnalytics(getLang());
 initShopUI({ grant: (set) => { grantSet(boost, set); saveBoost(); updateHud(); } });
 
 $('restart').addEventListener('click', () => {

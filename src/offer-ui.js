@@ -7,6 +7,7 @@ import { $, load, save } from './store.js';
 import { shouldOffer, offerShown, offerDeclined } from './offer.js';
 import { adStats, noAdsBought } from './ads.js';
 import { shopReady, shopItems, buy } from './shop.js';
+import { track } from './analytics.js';
 
 // цена товара из стора; '' — стор недоступен или товар уже куплен
 function priceOf(id) {
@@ -19,6 +20,7 @@ function open(price, onClose) {
   $('offer-price').textContent = price;
   $('offer').hidden = false;
   sfx.hint();
+  track('offer_shown', { product: OFFER.product });
   let closed = false;
   const close = () => {
     if (closed) return false;
@@ -32,6 +34,7 @@ function open(price, onClose) {
     sfx.click();
     // согласие купить — отказы обнуляются; следующий уровень — после окна оплаты Google Play
     save(OFFER.key, { ...(load(OFFER.key, null) || {}), declines: 0 });
+    track('offer_click', { product: OFFER.product });
     Promise.resolve(buy(OFFER.product))
       .catch(() => {})
       .finally(() => onClose?.());
@@ -40,6 +43,7 @@ function open(price, onClose) {
     if (!close()) return;
     sfx.click();
     save(OFFER.key, offerDeclined(load(OFFER.key, null)));
+    track('offer_decline', { product: OFFER.product });
     onClose?.();
   };
 }

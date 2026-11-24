@@ -4,6 +4,7 @@
 import { Capacitor } from '@capacitor/core';
 import { ADS } from './config.js';
 import { dayIndex } from './level.js';
+import { track } from './analytics.js';
 
 let plugin = null;
 let events = null;
@@ -106,6 +107,7 @@ export async function showRewarded() {
   }
   // игрок сам посмотрел ролик — ближайшая реклама между уровнями сдвигается, как будто она только что была
   if (earned) lastAdAt = performance.now();
+  track('ad_rewarded', { earned: earned ? 1 : 0 });
   return earned;
 }
 
@@ -122,6 +124,7 @@ export async function betweenLevels(level) {
     await plugin.prepareInterstitial({ adId: unit('interstitialId'), isTesting: ADS.testing });
     await plugin.showInterstitial();
     countShown();
+    track('ad_interstitial', { level });
     return true;
   } catch {
     return false; // нет рекламы — играем дальше
