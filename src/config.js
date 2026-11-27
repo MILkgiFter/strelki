@@ -383,6 +383,29 @@ export const DAILY = {
   reward: { hint: 1, eraser: 1, life: 1 },
 };
 
+// Недельные события (п. 12.10): каждую неделю (с понедельника) — тема и 5 уровней с её фигурами,
+// у всех игроков одинаковые; проходятся по порядку, за каждый — награда, за последний — большая.
+// Прогресс и звёзды основного пути не трогают (как ежедневный).
+export const EVENTS = {
+  key: 'strelki.event', // { week, done: сколько уровней события пройдено }
+  levels: 5,
+  weekShift: 3, // день 0 (1 янв 2026) — четверг: +3 — неделя начинается с понедельника
+  firstRound: 5000, // круги ритма далеко за обычными и ежедневными уровнями
+  tags: ['big', 'big', 'big', 'big', 'huge'], // такт ритма для каждого уровня события (размер поля)
+  rewards: [{ hint: 1 }, { eraser: 1 }, { life: 1 }, { hint: 1, eraser: 1 }, { hint: 3, eraser: 2, life: 2 }],
+  thumb: 52, // px — силуэт уровня в окне события
+  // темы по кругу; из каждой берутся 5 фигур подряд, при следующем круге — следующие 5
+  themes: [
+    { id: 'space', icon: '🚀', shapes: ['rocket', 'astronaut', 'alien', 'moon', 'robot', 'star', 'sun'] },
+    { id: 'sea', icon: '🌊', shapes: ['whale', 'fish', 'crab', 'octopus', 'mermaid', 'boat', 'anchor', 'lighthouse', 'turtle', 'sub', 'penguin'] },
+    { id: 'tales', icon: '🐉', shapes: ['firebird', 'dragon', 'unicorn', 'fairy', 'wizard', 'matryoshka', 'gorynych', 'bogatyr', 'princess'] },
+    { id: 'sweet', icon: '🍰', shapes: ['strawberry', 'cake', 'icecream', 'cherry', 'banana', 'carrot', 'mushroom'] },
+    { id: 'travel', icon: '✈️', shapes: ['eiffel', 'plane', 'bigben', 'train', 'pisa', 'colosseum', 'windmill', 'tajmahal', 'bridge'] },
+    { id: 'spooky', icon: '👻', shapes: ['ghost', 'vampire', 'witch', 'mummy', 'moon', 'necromancer', 'troll', 'orc'] },
+    { id: 'animals', icon: '🐾', shapes: ['cat', 'owl', 'elephant', 'giraffe', 'dog', 'snail', 'hare', 'butterfly', 'dinosaur'] },
+  ],
+};
+
 // Админская сборка (?admin=1): проверка уровней, прогресс игрока не трогается
 export const ADMIN = {
   levels: 200, // сколько уровней открыто в выборе уровня

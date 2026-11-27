@@ -114,6 +114,16 @@
       <button class="link-btn" id="looks-close" data-i18n="streakOk">Отлично</button>
     </div>
   </div>
+  <div class="overlay" id="event" hidden>
+    <div class="card card-streak">
+      <div class="card-title" id="event-title"></div>
+      <div class="card-sub" id="event-sub"></div>
+      <div class="ev-steps" id="event-steps"></div>
+      <button class="btn btn-big" id="event-play"></button>
+      <div class="card-sub" id="event-done" hidden></div>
+      <button class="link-btn" id="event-close" data-i18n="back">Назад</button>
+    </div>
+  </div>
   <div class="overlay" id="tasks" hidden>
     <div class="card card-streak">
       <div class="card-title" data-i18n="tasksTitle">Задания</div>
@@ -166,6 +176,8 @@
     </div>
     <!-- плитки: одна большая «Играть» сверху, остальное — сетка 3×2, точка на плитке — есть награда -->
     <div class="menu-grid">
+      <!-- недельное событие (п. 12.10): плитка на всю ширину сетки -->
+      <button class="mtile ev-card" id="open-event"><span class="mt-i" id="event-icon">🚀</span><span class="ev-t"><span class="mt-l" id="event-name"></span><span class="mt-n" id="event-note"></span></span><span class="ev-go">›</span></button>
       <button class="mtile" id="open-daily"><span class="mt-i">📅</span><span class="mt-l" data-i18n="daily">Ежедневный</span><span class="mt-n" id="daily-note"></span></button>
       <button class="mtile" id="open-tasks"><span class="mt-i">✅</span><span class="mt-l" data-i18n="tasksTitle">Задания</span><span class="mt-n" id="tasks-note"></span></button>
       <button class="mtile" id="open-streak"><span class="mt-i">🎁</span><span class="mt-l" data-i18n="streakTile">Подарок</span><span class="mt-n" id="streak-note"></span></button>

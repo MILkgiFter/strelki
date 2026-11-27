@@ -428,7 +428,7 @@ html[data-theme="neon"] .sd.now { background: #3A3520; }
 #streak { z-index: 7; } /* поверх экрана меню (z 6) */
 
 /* задания дня (п. 12.2) */
-#tasks { z-index: 7; }
+#tasks, #event { z-index: 7; }
 .tasks-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0 10px; text-align: left; }
 .task { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: #F4F1EA; }
 .task-text { flex: 1; min-width: 0; }
@@ -568,3 +568,21 @@ html[data-theme="neon"] .offer-buy { background: #5CFF7A; color: #14151F; box-sh
 .tutorial.tut-good { color: #2BB673; animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
 .shop-privacy { display: block; margin: 2px auto 0; font-size: 13px; opacity: .75; }
 .shop-privacy[hidden] { display: none; }
+
+/* недельное событие (п. 12.10): плитка на всю ширину меню и окно с 5 уровнями */
+.mtile.ev-card { grid-column: 1 / -1; aspect-ratio: auto; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 10px 14px; }
+.ev-t { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 0; gap: 2px; }
+.ev-t .mt-l { font-size: 15px; }
+.ev-go { font-size: 26px; font-weight: 800; color: #8A8275; line-height: 1; }
+.mtile.ev-card.ready::after { top: 8px; right: 8px; }
+.ev-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 16px 0 4px; }
+.ev-step { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border-radius: 12px; background: #F4F1EA; min-width: 0; }
+.ev-step canvas { display: block; max-width: 100%; height: auto !important; }
+.ev-step.next { outline: 3px solid #FFB020; }
+.ev-step.locked { opacity: .7; }
+.ev-name { font-size: 10px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ev-rw { font-size: 10px; line-height: 1.25; color: #8A8275; text-align: center; overflow-wrap: anywhere; }
+.ev-step.done .ev-rw { color: #2BB673; font-weight: 800; }
+html[data-theme="neon"] .ev-step { background: #1B1D2C; color: #ECEAF6; }
+html[data-theme="neon"] .ev-go, html[data-theme="neon"] .ev-rw { color: #8D8FB0; }
+html[data-look="chalk"] .ev-step { background: #34503F; }

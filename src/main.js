@@ -1,9 +1,9 @@
 // Состояние игры, уровень, победа/поражение, экраны, цикл. Ввод — input.js, камера — camera.js, бустеры — boosters-ui.js.
-import { GAME, ANIM, STARS, SOUND, CONFETTI, COLORS, SPLASH, ADMIN, BOOSTERS, DAILY } from './config.js';
+import { GAME, ANIM, STARS, SOUND, CONFETTI, COLORS, SPLASH, ADMIN, BOOSTERS, DAILY, EVENTS } from './config.js';
 import { initBoosters, grantForStars, grantSet, spend, BOOSTER_KINDS } from './boosters.js';
 import { t, shapeName, applyStatic, getLang, setLang, LANGS, langName } from './i18n.js';
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
-import { generate, findFree, probePiece, removePiece, pieces, isPiece, isLocked, analyze, dayIndex, dailyLevel } from './level.js';
+import { generate, findFree, probePiece, removePiece, pieces, isPiece, isLocked, analyze, dayIndex, dailyLevel, shapeById } from './level.js';
 import { render, safe } from './render.js';
 import { IS_ADMIN, $, load, save } from './store.js';
 import { initCamera, clampCam, zoomButtons } from './camera.js';
@@ -12,6 +12,8 @@ import { initBoostersUI, setMode, erase } from './boosters-ui.js';
 import { initScreens, showMenu, showLevels, hideScreens } from './screens.js';
 import { initStreakUI } from './streak-ui.js';
 import { initTasksUI, tasksOnEvent } from './tasks-ui.js';
+import { weekOf, eventOf, eventLevel, eventWin } from './events.js';
+import { initEventsUI, updateEventCard, currentEvent } from './events-ui.js';
 import { initAds, adsReady, showRewarded, betweenLevels } from './ads.js';
 import { initShopUI } from './shop-ui.js';
 import { initTutorial, startTutorial, tutorialFrame, tutorialFlew, tutorialBlocked } from './tutorial.js';
@@ -111,6 +113,12 @@ const todayKey = () => {
 let dailyDate = load(DAILY.key, null)?.date || '';
 const dailyDoneToday = () => dailyDate === todayKey();
 const startDaily = () => startLevel(dailyLevel(dayIndex(new Date())), true);
+// недельное событие (п. 12.10): уровень i темы этой недели — как ежедневный, но со своей фигурой и наградой
+function startEvent(i) {
+  const week = weekOf(dayIndex(new Date()));
+  const shape = shapeById(eventOf(week).shapes[i]);
+  startLevel(eventLevel(week, i), true, { week, i, shape });
+}
 
 // подсказка о бустерах: один раз, когда игрок дошёл до BOOSTERS.coachFrom (в админке не мешает прогону)
 let coachSeen = IS_ADMIN || load(BOOSTERS.coachKey, false) === true;
@@ -127,8 +135,9 @@ function closeCoach() {
 
 // ---------- уровень ----------
 // daily — ежедневный уровень: прогресс и звёзды не меняет, своя награда
-function startLevel(n, daily = false) {
-  const { w, h, grid, mask, shape, tag, stones } = generate(n);
+// ev — уровень недельного события { week, i, shape } (тогда и daily = true: прогресс тоже не трогаем)
+function startLevel(n, daily = false, ev = null) {
+  const { w, h, grid, mask, shape, tag, stones } = generate(n, ev ? ev.shape : null);
   Object.assign(st, {
     level: n,
     w,
@@ -140,6 +149,7 @@ function startLevel(n, daily = false) {
     list: pieces(grid), // змейки на поле (чтобы не собирать их из сетки каждый кадр)
     winAt: 0, // когда показать окно победы (после финала с фигурой)
     daily,
+    ev,
     press: null,
     cam: { z: 1, ox: 0, oy: 0 },
     grid,
@@ -169,12 +179,12 @@ function startLevel(n, daily = false) {
   $('tutorial').hidden = !st.tutorial;
   showCoach(!coachSeen && n >= BOOSTERS.coachFrom);
   startTutorial(n, daily || IS_ADMIN);
-  track('level_start', { level_name: daily ? 'daily' : String(n), level: daily ? 0 : n });
+  track('level_start', { level_name: ev ? 'event' : daily ? 'daily' : String(n), level: daily ? 0 : n });
   updateHud();
 }
 
 function updateHud() {
-  $('level').textContent = st.daily ? t('daily') : t('level', st.level);
+  $('level').textContent = st.ev ? t('eventLevel', st.ev.i + 1, EVENTS.levels) : st.daily ? t('daily') : t('level', st.level);
   $('hearts').innerHTML = Array.from(
     { length: GAME.lives },
     (_, i) => `<span class="heart${i < st.lives ? '' : ' empty'}">♥</span>`,
@@ -290,7 +300,18 @@ function win() {
   setMode(null);
   const stars = Math.max(1, Math.min(3, st.lives));
   let prev = 0;
-  if (st.daily) {
+  st.evFinal = false;
+  if (st.ev) {
+    // событие: награда только за следующий по порядку уровень, за последний — большая
+    // неделя сменилась посреди уровня — прогресс новой недели не трогаем, награды события нет
+    if (st.ev.week === weekOf(dayIndex(new Date()))) {
+      const r = eventWin(load(EVENTS.key, null), st.ev.week, st.ev.i);
+      save(EVENTS.key, r.state);
+      st.winGot = grantSet(boost, r.reward);
+      st.evFinal = r.finished && st.ev.i === EVENTS.levels - 1;
+    } else st.winGot = [];
+    updateEventCard();
+  } else if (st.daily) {
     // ежедневный: прогресс и звёзды не трогаем, награда — только за первое прохождение за день
     const first = !dailyDoneToday();
     st.winGot = first ? grantSet(boost, DAILY.reward) : [];
@@ -313,7 +334,7 @@ function win() {
   }
   saveBoost();
   updateHud();
-  tasksOnEvent({ type: 'win', perfect: st.lives >= GAME.lives && !st.usedLife, daily: st.daily, usedBoost: !!st.usedBoost, tag: st.tag, stars: st.daily ? 0 : stars });
+  tasksOnEvent({ type: 'win', perfect: st.lives >= GAME.lives && !st.usedLife, daily: st.daily && !st.ev, usedBoost: !!st.usedBoost, tag: st.tag, stars: st.daily ? 0 : stars });
   sfx.win();
   // финал: картинка собирается заново целиком, над ней — название; окно победы — следом
   const name = shapeName(st.shape);
@@ -333,15 +354,19 @@ function win() {
 
 function showWin(stars, prev) {
   $('finale').hidden = true;
-  const sub = st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
+  const sub = st.ev ? t(st.evFinal ? 'eventFinal' : 'eventWin') : st.daily ? t('dailyWin') : prev > stars ? t('record', '★'.repeat(prev)) : stars < 3 ? t('try3') : t('perfect');
   // после ежедневного «Дальше» ведёт к основному пути
   const doneLevel = st.level;
-  track('level_end', { level_name: st.daily ? 'daily' : String(doneLevel), level: st.daily ? 0 : doneLevel, success: 1, stars, used_boost: st.usedBoost ? 1 : 0 });
+  track('level_end', { level_name: st.ev ? 'event' : st.daily ? 'daily' : String(doneLevel), level: st.daily ? 0 : doneLevel, success: 1, stars, used_boost: st.usedBoost ? 1 : 0 });
   // момент радости: иногда «Оцените игру» (с 15-го уровня, 3 ★), иначе — со 2-го дня один раз разрешение на уведомление
   if (!st.daily) maybeAskReview(doneLevel, stars).then((asked) => !asked && maybeAskNotify());
   showOverlay(t('starTitles')[stars], sub, t('next'), () => {
     // иногда реклама между уровнями (правила ADS в config, SPEC §8), потом следующий уровень
-    const next = () => startLevel(st.daily ? progress : doneLevel + 1);
+    // после уровня события — следующий уровень события, если он есть; после ежедневного — основной путь
+    const wasEvWeek = st.ev ? st.ev.week : -1;
+    const wasDaily = st.daily;
+    const ev = currentEvent().s;
+    const next = () => (wasEvWeek === ev.week && !ev.finished ? startEvent(ev.done) : startLevel(wasDaily ? progress : doneLevel + 1));
     // после показанной рекламы иногда (редко) — спецпредложение «навсегда без рекламы»; уровень — после закрытия окна
     betweenLevels(st.daily ? 0 : doneLevel)
       .catch(() => false)
@@ -397,10 +422,10 @@ function confetti(stars) {
 }
 
 function lose() {
-  track('level_end', { level_name: st.daily ? 'daily' : String(st.level), level: st.daily ? 0 : st.level, success: 0, stars: 0 });
+  track('level_end', { level_name: st.ev ? 'event' : st.daily ? 'daily' : String(st.level), level: st.daily ? 0 : st.level, success: 0, stars: 0 });
   sfx.lose();
   setMode(null);
-  showOverlay(t('loseTitle'), t('loseSub'), t('restart'), () => startLevel(st.level, st.daily));
+  showOverlay(t('loseTitle'), t('loseSub'), t('restart'), () => startLevel(st.level, st.daily, st.ev));
   // «Продолжить» за бустер-жизнь: игра идёт дальше с того же места
   if (boost.life > 0) {
     $('ov-continue').hidden = false;
@@ -451,6 +476,7 @@ initTutorial(st);
 if (IS_ADMIN) window.__offer = previewOffer; // админка: посмотреть окно спецпредложения на сайте
 initStreakUI({ boost: () => boost, saveBoost, updateHud });
 initTasksUI({ boost: () => boost, saveBoost, updateHud });
+initEventsUI({ startEvent });
 initAds();
 initGrowth();
 initAnalytics(getLang());
@@ -459,7 +485,7 @@ initShopUI({ grant: (set) => { grantSet(boost, set); saveBoost(); updateHud(); }
 $('restart').addEventListener('click', () => {
   unlock();
   sfx.click();
-  startLevel(st.level, st.daily);
+  startLevel(st.level, st.daily, st.ev);
 });
 // серая подложка под фигурой — можно убрать, останутся только линии
 function updateBgButton() {
@@ -578,11 +604,18 @@ function tick(now) {
 }
 
 // ---------- язык ----------
+// буквы по графемам: у деванагари огласовки и нукта не отрываются от согласной
+function graphemes(s) {
+  if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+    return [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s)].map((g) => g.segment);
+  }
+  return [...s];
+}
 // «пузырчатое» слово логотипа: буквы разных цветов, выпрыгивают по очереди
 function renderWords() {
   const colors = [...Object.values(COLORS.dir), COLORS.hint];
   document.querySelectorAll('[data-word]').forEach((el) => {
-    el.innerHTML = [...t('title')]
+    el.innerHTML = graphemes(t('title'))
       .map((ch, i) => `<span style="color:${colors[i % colors.length]};animation-delay:${i * 0.07}s, ${i * 0.15}s">${ch}</span>`)
       .join('');
   });

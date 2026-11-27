@@ -33,6 +33,8 @@ export function rng(seed) {
 // Узнаваемые идут по кругу без повторов (каждый круг — своя перестановка), абстрактные
 // генерируются по номеру уровня — каждая своя. На «гигантских» уровнях — достопримечательности.
 const RECOGNIZABLE = [...SHAPES, ...OBJECTS, ...NATURE, { ...RECT, name: 'Классика' }];
+// фигура по id (недельные события задают фигуру явно)
+export const shapeById = (id) => [...SHAPES, ...OBJECTS, ...NATURE, ...LANDMARKS].find((x) => x.id === id) || null;
 function permutation(n, seed) {
   const rand = rng(seed);
   const idx = Array.from({ length: n }, (_, i) => i);
@@ -102,11 +104,12 @@ export function dailyLevel(day) {
 
 // Параметры уровня: базовая ступень сложности × «такт» ритма (лёгкий / обычный / сложный / большой)
 // × форма поля. Сетка подбирается под пропорции фигуры, площадь — под ступень и такт.
-export function params(levelNum) {
+// shape — задать фигуру явно (недельные события), иначе — по номеру уровня
+export function params(levelNum, shapeOverride = null) {
   const tier = DIFFICULTY.find((row) => levelNum <= row.upTo);
   if (levelNum <= RHYTHM.introLevels) return { ...tier, shape: RECT, tag: '' };
   const beat = RHYTHM.cycle[(levelNum - RHYTHM.introLevels - 1) % RHYTHM.cycle.length];
-  const shape = shapeFor(levelNum);
+  const shape = shapeOverride || shapeFor(levelNum);
   const a = shapeAspect(shape);
   const snakes = Math.max(beat.minSnakes || 3, Math.round(tier.snakes * beat.count));
   const box = (snakes * RHYTHM.cellsPerSnake) / shapeFill(shape);
@@ -158,8 +161,8 @@ export function removePiece(grid, p) {
 // Строим поле «от решения»: каждая новая змейка ставится только туда,
 // откуда у её носа есть свободный путь. Обратный порядок постройки = решение.
 // Делаем несколько вариантов и берём самый запутанный.
-export function generate(levelNum) {
-  const p = params(levelNum);
+export function generate(levelNum, shape = null) {
+  const p = params(levelNum, shape);
   const rand = rng(levelNum * 9973 + 17);
   let best = null;
   let bestScore = -Infinity;
