@@ -5,7 +5,7 @@ import { t, shapeName, applyStatic, getLang, setLang, LANGS, langName } from './
 import { sfx, unlock, setEnabled, isEnabled, music, setSfxVolume } from './sound.js';
 import { generate, findFree, probePiece, removePiece, pieces, isPiece, isLocked, analyze, dayIndex, dailyLevel, shapeById } from './level.js';
 import { render, safe } from './render.js';
-import { IS_ADMIN, $, load, save } from './store.js';
+import { IS_ADMIN, IS_DEMO, $, load, save } from './store.js';
 import { initCamera, clampCam, zoomButtons } from './camera.js';
 import { initInput } from './input.js';
 import { initBoostersUI, setMode, erase } from './boosters-ui.js';
@@ -704,7 +704,12 @@ function runSplash() {
 }
 
 resize();
-if (IS_ADMIN) {
+if (IS_DEMO) {
+  startLevel(1); // пустое состояние ломает кадр, пока грузится demo.js
+  applyLang();
+  $('splash').hidden = true;
+  import('./demo.js').then((m) => m.initDemo({ st, startLevel, tap }));
+} else if (IS_ADMIN) {
   startLevel(1);
   applyLang();
   $('splash').hidden = true;

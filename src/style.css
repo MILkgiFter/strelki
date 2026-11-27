@@ -586,3 +586,7 @@ html[data-theme="neon"] .offer-buy { background: #5CFF7A; color: #14151F; box-sh
 html[data-theme="neon"] .ev-step { background: #1B1D2C; color: #ECEAF6; }
 html[data-theme="neon"] .ev-go, html[data-theme="neon"] .ev-rw { color: #8D8FB0; }
 html[data-look="chalk"] .ev-step { background: #34503F; }
+
+/* демо-режим для записи роликов (?demo): только поле, финал и конфетти; тапы ловит прозрачный слой */
+body.demo > :not(#board):not(#finale):not(#confetti):not(.demo-catch) { display: none !important; }
+body.demo .demo-catch { position: fixed; inset: 0; z-index: 50; cursor: pointer; touch-action: none; }
